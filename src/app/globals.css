@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by data-theme on <html> (set before paint by ThemeScript). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* Viewport height, for short laptop screens (e.g. 1366x768 at 125% scaling). */
+@custom-variant tall (@media (min-height: 760px));
+
+/* ------------------------------------------------------------------ tokens */
+:root {
+  --paper: #f6f7f9;      /* page background */
+  --surface: #ffffff;    /* panels */
+  --sunken: #eef0f3;     /* wells, tracks, kanban columns */
+  --ink: #14161a;        /* primary text */
+  --muted: #5a606b;      /* secondary text (≥ 5.9:1 on white) */
+  --rule: #e3e6eb;       /* borders, dividers */
+  --rule-strong: #c9ced6;
+  --warn: #b03a06;       /* "missing" / high severity text */
+  --warn-soft: #ffe8d9;
+  --partial: #3f4552;
+  --partial-soft: #eceef2;
+  --danger: #b42318;
+  --on-hl: #0d0f12;      /* text on the highlighter fill */
+
+  /* highlighter accent (lime default; see [data-accent]) */
+  --hl: #c6f432;
+  --hl-ink: #3d6600;     /* accent used as text in light mode */
+  --hl-soft: #effbcc;
+  --hl-a: rgb(198 244 50 / 0.75);
+  --hl-rgb: 198 244 50;
+  /* chart marks: must reach 3:1 against the surface (validated). Neon fails on white, so light uses a deeper step. */
+  --viz: #5b8c00;
+  --viz-2: #c9ced6;      /* secondary/comparison series (neutral) */
+
+  /* elevation */
+  --card-shadow: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px -12px rgb(16 24 40 / 0.12);
+  --card-shadow-hover: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 2px 4px rgb(16 24 40 / 0.05), 0 20px 40px -18px rgb(16 24 40 / 0.22);
+  --grid-dot: rgb(20 22 26 / 0.07);
+  --ambient: rgb(var(--hl-rgb) / 0.22);
+}
+
+[data-theme="dark"] {
+  --paper: #101215;
+  --surface: #181b20;
+  --sunken: #1f232a;
+  --ink: #eceef1;
+  --muted: #a1a7b3;
+  --rule: #2a2e36;
+  --rule-strong: #3a404b;
+  --warn: #ffb27a;
+  --warn-soft: #3d2312;
+  --partial: #d3d7e0;
+  --partial-soft: #262b34;
+  --danger: #ff8a7a;
+
+  --hl-ink: #d4fa5e;
+  --hl-soft: #252f0b;
+  --hl-a: rgb(198 244 50 / 0.85);
+  --viz: #c6f432;
+  --viz-2: #3a404b;
+
+  --card-shadow: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --card-shadow-hover: 0 1px 0 rgb(255 255 255 / 0.07) inset, 0 0 0 1px rgb(var(--hl-rgb) / 0.25), 0 24px 48px -20px rgb(var(--hl-rgb) / 0.25);
+  --grid-dot: rgb(255 255 255 / 0.05);
+  --ambient: rgb(var(--hl-rgb) / 0.14);
+}
+
+[data-accent="mint"] { --hl: #3dffa2; --hl-ink: #00703f; --hl-soft: #dcfbea; --hl-a: rgb(61 255 162 / 0.7); --hl-rgb: 61 255 162; --viz: #00975a; }
+[data-theme="dark"][data-accent="mint"] { --hl-ink: #6bffba; --hl-soft: #0d2e20; --hl-a: rgb(61 255 162 / 0.85); --viz: #3dffa2; }
+[data-accent="cyan"] { --hl: #22e4ff; --hl-ink: #006b7a; --hl-soft: #dcf8fd; --hl-a: rgb(34 228 255 / 0.65); --hl-rgb: 34 228 255; --viz: #008a9e; }
+[data-theme="dark"][data-accent="cyan"] { --hl-ink: #6beeff; --hl-soft: #0b2a31; --hl-a: rgb(34 228 255 / 0.85); --viz: #22e4ff; }
+[data-accent="magenta"] { --hl: #ff4fd8; --hl-ink: #a1067f; --hl-soft: #ffe1f7; --hl-a: rgb(255 79 216 / 0.55); --hl-rgb: 255 79 216; --viz: #c0179a; }
+[data-theme="dark"][data-accent="magenta"] { --hl-ink: #ff85e4; --hl-soft: #3a0f31; --hl-a: rgb(255 79 216 / 0.8); --viz: #ff4fd8; }
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-partial: var(--partial);
+  --color-partial-soft: var(--partial-soft);
+  --color-danger: var(--danger);
+  --color-hl: var(--hl);
+  --color-hl-ink: var(--hl-ink);
+  --color-hl-soft: var(--hl-soft);
+  --color-on-hl: var(--on-hl);
+  --color-viz: var(--viz);
+  --color-viz-2: var(--viz-2);
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+/* ------------------------------------------------------------------- base */
+html { background: var(--paper); color: var(--ink); color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+body { font-family: var(--font-sans); font-size: 15px; line-height: 1.55; }
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.015em; }
+::selection { background: var(--hl); color: var(--on-hl); }
+
+:focus-visible { outline: 2px solid var(--hl-ink); outline-offset: 2px; border-radius: 4px; }
+
+/* The highlighter: the one signature mark of the product.
+   Meaning: "backed by evidence from your resume". Never decorative. */
+.hl {
+  background-image: linear-gradient(100deg, transparent 0.4em, var(--hl-a) 0.55em, var(--hl-a) calc(100% - 0.4em), transparent calc(100% - 0.25em));
+  background-size: 100% 78%;
+  background-position: 0 70%;
+  background-repeat: no-repeat;
+  color: var(--on-hl);
+  padding: 0 0.35em;
+  margin: 0 -0.15em;
+  border-radius: 0.2em 0.5em 0.25em 0.45em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+[data-theme="dark"] .hl { color: var(--on-hl); }
+
+/* Highlighter sweep used once, when a mark appears (accepting an edit, landing demo). */
+@keyframes hl-sweep { from { background-size: 0% 78%; } to { background-size: 100% 78%; } }
+.hl-sweep { animation: hl-sweep 420ms cubic-bezier(.2,.7,.2,1) both; }
+
+@keyframes meter-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.meter-fill { transform-origin: left; animation: meter-fill 480ms cubic-bezier(.2,.7,.2,1) both; }
+
+@keyframes caret { 50% { opacity: 0; } }
+.caret::after { content: ""; display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: -0.15em; background: currentColor; animation: caret 1s steps(1) infinite; }
+
+/* ------------------------------------------------------------ surfaces v2 */
+@layer components {
+/* Elevated card: soft layered shadow, light top edge; lifts and picks up an accent glow on hover when interactive. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+}
+.card-hover { transition: transform 200ms cubic-bezier(.2,.7,.2,1), box-shadow 200ms, border-color 200ms; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-hover); border-color: var(--rule-strong); }
+
+/* Ambient page background: faint dot grid + one soft accent glow. */
+.ambient {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(60rem 30rem at 10% -10%, var(--ambient), transparent 60%),
+    radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: auto, 22px 22px;
+  background-attachment: fixed, fixed;
+}
+
+}
+
+/* Neon glow for small accent objects (icon chips, active nav, primary CTA). */
+@utility glow { box-shadow: 0 0 0 1px rgb(var(--hl-rgb) / 0.35), 0 8px 28px -6px rgb(var(--hl-rgb) / 0.55); }
+@utility text-glow { text-shadow: 0 0 24px rgb(var(--hl-rgb) / 0.45); }
+
+@layer components {
+/* Shimmer for skeletons / "AI is working" states. */
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+.shimmer { background: linear-gradient(90deg, var(--sunken) 25%, var(--rule) 50%, var(--sunken) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+
+/* Draw-in for SVG strokes: set stroke-dasharray/offset via pathLength="1". */
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 900ms cubic-bezier(.2,.7,.2,1) forwards; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw { stroke-dashoffset: 0; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
