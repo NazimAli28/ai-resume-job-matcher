@@ -5,6 +5,16 @@
 > Last updated: 2026-10-20
 
 ## Status
+- **[V] 2026-10-30: Phase 0 mostly done.**
+  - Public repo https://github.com/NazimAli28/ai-resume-job-matcher (main). CI (lint, typecheck with `next typegen`, Vitest, build, `npm audit --omit=dev --audit-level=high`) is green.
+  - GitHub security: secret scanning + push protection, Dependabot alerts/fixes + weekly updates, private vulnerability reporting, and a ruleset on main (no deletion, no force-push). Open Dependabot alerts: 0.
+  - Added: `src/config/brand.ts`, `src/server/env.ts` (Zod; names only in errors), `src/server/ai/provider/{types,mock}.ts`, `vitest.config.ts`, security headers in `next.config.ts` (full nonce CSP deferred to Phase 8), README, SECURITY.md (all rights reserved), `.gitattributes` (LF).
+  - Deps: zod 4.6.7 (3.x had a high advisory), vitest 4.x, server-only.
+  - Supabase project was **paused (free-tier idle)** and was restored 2026-10-30. Keep-alive is part of the backup job.
+  - `.env.local` was created with **public** values only (URL, publishable key). It is git-ignored.
+  - **Blocked on the founder:** (1) install the Vercel GitHub app for this repo (`create_git_project` returned "install the GitHub integration first"); (2) paste the DB password and the Supabase secret key.
+  - Dependabot major-bump PRs 1–6 are left open for review. PRs 7–9 are superseded by the vitest 4 upgrade; closing them was blocked by the permission system, so the founder can close them.
+  - Gotcha: `X-Frame-Options: DENY` also blocks same-origin iframe audits; use window resizing to test.
 - **[V] 2026-10-30: Founder approved the full build (Phases 0–8) to production.** Work runs phase by phase with evidence at each gate. Keys are requested from the founder when a phase needs them; Claude never handles secret values (the founder pastes them into Vercel or `.env.local`).
 - **[V] 2026-10-20:** **PRD v1.0 draft complete; awaiting founder review.** No code, no git repo, no tests yet.
   - Index + locked decisions + glossary + canonical constants: [docs/PRD.md](docs/PRD.md) (§3, §5, §5b).
