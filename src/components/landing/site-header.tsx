@@ -27,7 +27,7 @@ export function Logo() {
       >
         {LOGO_MARK}
       </span>
-      <span className="whitespace-nowrap font-display text-[17px] font-bold leading-tight">{PRODUCT_NAME}</span>
+      <span className="whitespace-nowrap font-display text-[15px] font-bold leading-tight min-[380px]:text-[17px]">{PRODUCT_NAME}</span>
     </Link>
   );
 }

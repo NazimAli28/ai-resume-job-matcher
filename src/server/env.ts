@@ -12,8 +12,8 @@ const schema = z.object({
   DATABASE_URL: z.string().url().optional(),
   DIRECT_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(20).optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().startsWith("sb_publishable_").optional(),
+  SUPABASE_SECRET_KEY: z.string().startsWith("sb_secret_").optional(),
   // Phase 1: email (Resend)
   RESEND_API_KEY: z.string().startsWith("re_").optional(),
   // Phase 4: AI (Anthropic)

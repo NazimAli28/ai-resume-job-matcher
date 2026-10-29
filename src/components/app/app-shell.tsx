@@ -41,7 +41,7 @@ function Logo({ compact }: { compact?: boolean }) {
         {LOGO_MARK}
       </span>
       <span className={cn("flex-col leading-tight", compact ? "hidden min-[420px]:flex" : "flex")}>
-        <span className="whitespace-nowrap font-display text-[16px] font-bold">{PRODUCT_NAME}</span>
+        <span className="whitespace-nowrap font-display text-[15px] font-bold">{PRODUCT_NAME}</span>
         <span className={cn("text-[11px] text-muted", compact && "hidden sm:block")}>Job search copilot</span>
       </span>
     </Link>
