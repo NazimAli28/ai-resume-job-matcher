@@ -20,6 +20,8 @@ const schema = z.object({
   ANTHROPIC_API_KEY: z.string().startsWith("sk-ant-").optional(),
   // Background task tick (pg_cron → /api/tasks/tick)
   CRON_SECRET: z.string().min(32).optional(),
+  // Keyed hash for identifiers in logs, rate-limit keys and the deletion ledger
+  HASH_PEPPER: z.string().min(32).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -28,7 +30,9 @@ let cached: Env | undefined;
 
 export function env(): Env {
   if (cached) return cached;
-  const parsed = schema.safeParse(process.env);
+  // An empty line in .env ("KEY=") means "not set yet", not an invalid value.
+  const present = Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== undefined && v !== ""));
+  const parsed = schema.safeParse(present);
   if (!parsed.success) {
     // Names only: never print values.
     const bad = parsed.error.issues.map((i) => i.path.join(".")).join(", ");
