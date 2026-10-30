@@ -105,7 +105,7 @@ export function OnboardingFlow() {
       <div className="flex items-center justify-between text-sm text-muted">
         <span className="font-semibold">Step {step} of 4</span>
         {step < 4 && (
-          <ButtonLink href="/app" variant="ghost" size="sm">
+          <ButtonLink href="/demo" variant="ghost" size="sm">
             Skip setup
           </ButtonLink>
         )}
@@ -242,10 +242,10 @@ export function OnboardingFlow() {
                     </ol>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="primary" size="lg" onClick={() => router.push("/app")}>
+                    <Button variant="primary" size="lg" onClick={() => router.push("/demo")}>
                       Go to dashboard
                     </Button>
-                    <ButtonLink href={`/app/resumes/${shown.id}`} size="lg">
+                    <ButtonLink href={`/demo/resumes/${shown.id}`} size="lg">
                       See the full report
                     </ButtonLink>
                   </div>

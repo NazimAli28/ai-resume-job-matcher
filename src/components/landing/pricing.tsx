@@ -91,7 +91,7 @@ export function Pricing() {
               </p>
               <Features items={FREE} />
               <div className="mt-auto flex flex-col gap-2">
-                <ButtonLink href="/app" variant="primary" size="lg" className="glow">
+                <ButtonLink href="/demo" variant="primary" size="lg" className="glow">
                   Try the demo
                 </ButtonLink>
                 <p className="text-center text-[13px] text-muted">No card needed. Limits shown are after beta.</p>

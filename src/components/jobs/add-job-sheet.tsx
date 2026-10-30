@@ -91,7 +91,7 @@ export function AddJobSheet({ open, onClose }: { open: boolean; onClose: () => v
     toast(`Saved ${job.title} at ${job.company}`);
     reset();
     onClose();
-    router.push(`/app/jobs/${id}`);
+    router.push(`/demo/jobs/${id}`);
   };
 
   const footer =

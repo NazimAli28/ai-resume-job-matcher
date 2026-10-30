@@ -104,7 +104,7 @@ export function ChangeRail({
             </span>
             <span>
               Saved as <span className="font-semibold">{saved.label}: {saved.name}</span>.{" "}
-              <Link href="/app/resumes" className="font-semibold text-hl-ink underline underline-offset-4">See your resumes</Link>
+              <Link href="/demo/resumes" className="font-semibold text-hl-ink underline underline-offset-4">See your resumes</Link>
             </span>
           </p>
         ) : limitReached ? (

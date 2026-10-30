@@ -98,7 +98,7 @@ export function ListView({ apps, onOpen }: { apps: Application[]; onOpen: (id: s
                 </td>
                 <td className="px-3">
                   {r && (
-                    <Link href={`/app/resumes/${r.id}`} className="font-semibold underline-offset-4 hover:underline">
+                    <Link href={`/demo/resumes/${r.id}`} className="font-semibold underline-offset-4 hover:underline">
                       {r.label}
                     </Link>
                   )}

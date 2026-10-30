@@ -80,7 +80,7 @@ function Workspace({ job, reqs }: { job: Job; reqs: EffectiveRequirement[] }) {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        back={<BackLink href={`/app/jobs/${job.id}`} label="Back to the match" />}
+        back={<BackLink href={`/demo/jobs/${job.id}`} label="Back to the match" />}
         title={`Tailor your resume for ${job.company}`}
         description={`${job.title}. Every change is based on your own resume or answers; nothing is added unless you accept it.`}
       />

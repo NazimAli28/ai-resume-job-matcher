@@ -17,21 +17,21 @@ import { LOGO_MARK, PRODUCT_NAME } from "@/config/brand";
 import { CommandPalette } from "./command-palette";
 
 const NAV = [
-  { href: "/app", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/resumes", label: "Resumes", icon: FileText },
-  { href: "/app/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/app/applications", label: "Applications", icon: KanbanSquare },
-  { href: "/app/interviews", label: "Interviews", icon: Mic },
-  { href: "/app/profile", label: "Profile", icon: User },
-  { href: "/app/settings", label: "Settings", icon: Settings },
+  { href: "/demo", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/demo/resumes", label: "Resumes", icon: FileText },
+  { href: "/demo/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/demo/applications", label: "Applications", icon: KanbanSquare },
+  { href: "/demo/interviews", label: "Interviews", icon: Mic },
+  { href: "/demo/profile", label: "Profile", icon: User },
+  { href: "/demo/settings", label: "Settings", icon: Settings },
 ];
 // Phone nav: two links, the raised Match button, one link, More. Everything else lives in More.
 const MOBILE_NAV = [NAV[0], NAV[2], NAV[3]];
 const MORE_NAV = [NAV[1], NAV[4], NAV[5], NAV[6]];
-const MATCH_HREF = "/app/match";
+const MATCH_HREF = "/demo/match";
 
 function isActive(pathname: string, href: string) {
-  return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
+  return href === "/demo" ? pathname === "/demo" : pathname.startsWith(href);
 }
 
 function Logo({ compact }: { compact?: boolean }) {
@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="mt-auto flex flex-col gap-3">
             {upcoming && (
-              <Link href={`/app/interviews/new?job=${upcoming.jobId}`} className="relative hidden overflow-hidden rounded-2xl bg-ink p-4 text-paper tall:block">
+              <Link href={`/demo/interviews/new?job=${upcoming.jobId}`} className="relative hidden overflow-hidden rounded-2xl bg-ink p-4 text-paper tall:block">
                 <span aria-hidden className="absolute -right-6 -top-6 size-24 rounded-full bg-hl opacity-40 blur-2xl" />
                 <Sparkles className="relative size-5 text-hl" aria-hidden />
                 <p className="relative mt-2 font-display text-[15px] font-bold leading-snug">
@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <p className="relative text-xs opacity-75">Practice 5 questions for {upcoming.company}</p>
               </Link>
             )}
-            <Link href="/app/settings" className="flex shrink-0 items-center gap-3 rounded-2xl border border-rule p-3 hover:bg-sunken">
+            <Link href="/demo/settings" className="flex shrink-0 items-center gap-3 rounded-2xl border border-rule p-3 hover:bg-sunken">
               <UsageRing used={usedTotal} max={maxTotal} />
               <span className="flex flex-col text-sm leading-tight">
                 <span className="font-semibold">Free beta</span>
@@ -300,7 +300,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="mt-2 flex gap-3 text-sm font-semibold">
                 {n.applicationId && (
                   <Link
-                    href={`/app/applications?open=${n.applicationId}`}
+                    href={`/demo/applications?open=${n.applicationId}`}
                     onClick={() => {
                       dispatch({ type: "MARK_NOTIFICATION_READ", id: n.id });
                       setNotifOpen(false);

@@ -22,7 +22,7 @@ export function Hero() {
             only facts you&rsquo;ve confirmed, and the interview gets practiced before it happens.
           </p>
           <div className="flex flex-wrap gap-3">
-            <ButtonLink href="/app" variant="primary" size="lg" className="glow">
+            <ButtonLink href="/demo" variant="primary" size="lg" className="glow">
               Try the demo
             </ButtonLink>
             <a

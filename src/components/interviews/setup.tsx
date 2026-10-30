@@ -115,14 +115,14 @@ export function InterviewSetup() {
     const session = createSession(cfg, job, state.profile);
     dispatch({ type: "SAVE_INTERVIEW", session });
     dispatch({ type: "INCREMENT_USAGE", key: "interviews" });
-    router.push(`/app/interviews/${session.id}`);
+    router.push(`/demo/interviews/${session.id}`);
   };
 
   if (jobs.length === 0) {
     return (
       <div className="mx-auto max-w-2xl">
         <PageHeader title="Start a practice interview" description="Save a job first so the questions can be built from its requirements." />
-        <Link href="/app/jobs" className="font-semibold underline">Go to jobs</Link>
+        <Link href="/demo/jobs" className="font-semibold underline">Go to jobs</Link>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export function InterviewSetup() {
     <div className="mx-auto max-w-5xl">
       <PageHeader
         back={
-          <Link href="/app/interviews" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink">
+          <Link href="/demo/interviews" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink">
             <ArrowLeft className="size-4" aria-hidden /> Mock interviews
           </Link>
         }

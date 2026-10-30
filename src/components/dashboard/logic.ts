@@ -32,7 +32,7 @@ export function nextBestAction(state: DemoState): NextBestAction {
       title: `${overdue.nextAction.label} with ${overdue.company}`,
       why: d === 0 ? "This was due today. A short, polite message keeps you on their radar." : `This was due ${-d} day${d === -1 ? "" : "s"} ago. Sending it now is better than not at all.`,
       cta: "Open application",
-      href: `/app/applications?open=${overdue.id}`,
+      href: `/demo/applications?open=${overdue.id}`,
       applicationId: overdue.id,
     };
   }
@@ -47,7 +47,7 @@ export function nextBestAction(state: DemoState): NextBestAction {
         title: `Practice for your ${app.company} interview`,
         why: `Your round is ${daysBetween(TODAY, round.at) === 0 ? "today" : `in ${daysBetween(TODAY, round.at)} days`} and you have not practiced for this job yet.`,
         cta: "Start practice",
-        href: `/app/interviews/new?job=${app.jobId}`,
+        href: `/demo/interviews/new?job=${app.jobId}`,
       };
     }
   }
@@ -60,7 +60,7 @@ export function nextBestAction(state: DemoState): NextBestAction {
       title: `Fix ${high.length} high-priority ${high.length === 1 ? "issue" : "issues"} in ${resume.label}`,
       why: "These can hide your experience from automated parsers or distract a recruiter. Each fix explains what we saw.",
       cta: "Review findings",
-      href: `/app/resumes/${resume.id}`,
+      href: `/demo/resumes/${resume.id}`,
     };
   }
 
@@ -73,7 +73,7 @@ export function nextBestAction(state: DemoState): NextBestAction {
       title: `Tailor your resume for ${saved.company}`,
       why: `You saved ${saved.title} but have not adapted a resume for it. We suggest wording from your own experience only.`,
       cta: "Review the job",
-      href: `/app/jobs/${saved.jobId}`,
+      href: `/demo/jobs/${saved.jobId}`,
     };
   }
 
@@ -82,7 +82,7 @@ export function nextBestAction(state: DemoState): NextBestAction {
     title: "You are up to date",
     why: "No follow-ups, interviews or resume issues need you right now. Saving another job is a good next step.",
     cta: "Add a job",
-    href: "/app/jobs",
+    href: "/demo/jobs",
   };
 }
 

@@ -26,7 +26,7 @@ export function StatsRow({ range }: { range: Range }) {
           delta={up(o.sentInRange, range, " sent")}
           trend={o.sentPerWeek}
           footnote={`${o.s.sent} sent in total, ${o.s.active} still open`}
-          href="/app/applications"
+          href="/demo/applications"
         />
       </Item>
       <Item className="lg:col-span-2 2xl:col-span-1 [&>*]:h-full">
@@ -36,7 +36,7 @@ export function StatsRow({ range }: { range: Range }) {
           value={nextRound}
           delta={up(o.roundsHeldInRange, range, " held")}
           footnote={`${o.practiceDone} practice ${o.practiceDone === 1 ? "session" : "sessions"} done, ${o.s.interviews} ${o.s.interviews === 1 ? "application" : "applications"} reached interviews`}
-          href="/app/interviews"
+          href="/demo/interviews"
         />
       </Item>
       <Item className="lg:col-span-2 2xl:col-span-1 [&>*]:h-full">
@@ -46,7 +46,7 @@ export function StatsRow({ range }: { range: Range }) {
           value={o.s.offers}
           delta={up(o.offersInRange, range)}
           footnote={o.s.offers ? "Compare offers in the tracker" : "None yet. Keep going."}
-          href="/app/applications"
+          href="/demo/applications"
         />
       </Item>
       <Item className="lg:col-span-3 2xl:col-span-1 [&>*]:h-full">
@@ -58,19 +58,19 @@ export function StatsRow({ range }: { range: Range }) {
           delta={up(o.repliesInRange, range, " replies")}
           trend={o.repliesPerWeek}
           footnote={`${o.s.replied} of ${o.s.sent} heard back, rejections included`}
-          href="/app/applications"
+          href="/demo/applications"
         />
       </Item>
       <Item className="sm:col-span-2 lg:col-span-3 2xl:col-span-1 [&>*]:h-full">
         {o.avgFit === null ? (
-          <StatCard icon={Gauge} label="Average fit estimate" value={0} footnote="Add a job to see how your resume fits it" href="/app/jobs" />
+          <StatCard icon={Gauge} label="Average fit estimate" value={0} footnote="Add a job to see how your resume fits it" href="/demo/jobs" />
         ) : (
           <StatCard
             icon={Gauge}
             label="Average fit estimate"
             value={o.avgFit}
             footnote={`Estimate across ${o.fitCount} saved ${o.fitCount === 1 ? "job" : "jobs"}, not a hiring prediction`}
-            href="/app/jobs"
+            href="/demo/jobs"
           />
         )}
       </Item>

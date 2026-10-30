@@ -183,7 +183,7 @@ export function Playground() {
               {phase === "done" ? (
                 <>
                   <DemoResults activeFinding={activeFinding} pinned={pinned} onHover={setHovered} onPick={pick} />
-                  <Link href="/app" className={buttonClass("ink", "md", "self-start")}>
+                  <Link href="/demo" className={buttonClass("ink", "md", "self-start")}>
                     Open the full report in the demo
                   </Link>
                 </>

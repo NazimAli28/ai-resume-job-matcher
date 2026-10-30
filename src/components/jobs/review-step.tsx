@@ -131,7 +131,7 @@ export function ReviewStep({
       {confirmDup && duplicate && (
         <div role="alert" className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-rule-strong p-3 text-sm">
           <p>You already saved {duplicate.title} at {duplicate.company}. Save it again anyway?</p>
-          <Link href={`/app/jobs/${duplicate.id}`} className="font-semibold text-hl-ink underline underline-offset-4">Open the saved job</Link>
+          <Link href={`/demo/jobs/${duplicate.id}`} className="font-semibold text-hl-ink underline underline-offset-4">Open the saved job</Link>
         </div>
       )}
 

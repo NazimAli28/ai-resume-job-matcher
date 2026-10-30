@@ -225,7 +225,7 @@ export function ProductTabs() {
               <List label="Good to know" items={f.details} />
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule pt-5">
                 <span className="rounded-full bg-sunken px-3 py-1.5 text-sm font-semibold">{f.limit}</span>
-                <Link href="/app" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-ink underline-offset-4 hover:underline">
+                <Link href="/demo" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-ink underline-offset-4 hover:underline">
                   Try it in the demo <ArrowRight className="size-4" aria-hidden />
                 </Link>
               </div>

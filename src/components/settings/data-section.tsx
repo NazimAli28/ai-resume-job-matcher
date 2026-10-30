@@ -56,7 +56,7 @@ export function DataSection() {
                 dispatch({ type: "RESET" });
                 close();
                 toast("Demo: account deleted and sample data restored");
-                router.push("/app");
+                router.push("/demo");
               }}
             >
               Delete everything

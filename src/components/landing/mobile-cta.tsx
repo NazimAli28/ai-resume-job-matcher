@@ -23,7 +23,7 @@ export function MobileCtaBar() {
           <span className="block font-semibold text-ink">Free during beta</span>
           Sample data, no account
         </p>
-        <ButtonLink href="/app" variant="primary" size="md" className="glow">
+        <ButtonLink href="/demo" variant="primary" size="md" className="glow">
           Try the demo
         </ButtonLink>
       </div>

@@ -45,7 +45,7 @@ export function TrackDialog({ job, open, onClose }: { job: Job; open: boolean; o
     };
     dispatch({ type: "ADD_APPLICATION", application: app });
     onClose();
-    toast(`Tracking ${job.title} at ${job.company}`, { label: "Open applications", onClick: () => router.push("/app/applications") });
+    toast(`Tracking ${job.title} at ${job.company}`, { label: "Open applications", onClick: () => router.push("/demo/applications") });
   };
 
   return (

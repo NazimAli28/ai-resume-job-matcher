@@ -73,7 +73,7 @@ function UploadPanel({ onClose }: { onClose?: () => void }) {
             </span>
           </p>
           <div className="flex flex-wrap gap-2">
-            <ButtonLink href={`/app/resumes/${run.result.id}`} variant="primary">
+            <ButtonLink href={`/demo/resumes/${run.result.id}`} variant="primary">
               See the report
             </ButtonLink>
             <Button onClick={run.reset}>Upload another</Button>
@@ -103,7 +103,7 @@ function VersionCard({ r, isDefault, appCount }: { r: ResumeVersion; isDefault: 
       </div>
 
       <div className="min-w-0">
-        <Link href={`/app/resumes/${r.id}`} className="font-display text-xl font-bold leading-snug after:absolute after:inset-0 after:rounded-[20px] hover:underline">
+        <Link href={`/demo/resumes/${r.id}`} className="font-display text-xl font-bold leading-snug after:absolute after:inset-0 after:rounded-[20px] hover:underline">
           {r.name}
         </Link>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
@@ -138,7 +138,7 @@ function VersionCard({ r, isDefault, appCount }: { r: ResumeVersion; isDefault: 
       </div>
 
       <div className="relative z-10 mt-auto flex flex-wrap gap-2">
-        <ButtonLink href={`/app/resumes/${r.id}`} size="sm">
+        <ButtonLink href={`/demo/resumes/${r.id}`} size="sm">
           View report
         </ButtonLink>
         {!isDefault && (

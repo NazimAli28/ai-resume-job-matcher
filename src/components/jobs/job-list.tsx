@@ -41,7 +41,7 @@ function JobCard({ row, view }: { row: Row; view: View }) {
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <CompanyTile name={job.company} />
           <div className="min-w-0">
-            <Link href={`/app/jobs/${job.id}`} className="font-display text-[17px] font-bold leading-snug after:absolute after:inset-0 after:rounded-[20px] hover:underline">
+            <Link href={`/demo/jobs/${job.id}`} className="font-display text-[17px] font-bold leading-snug after:absolute after:inset-0 after:rounded-[20px] hover:underline">
               {job.title}
             </Link>
             <p className="truncate text-sm text-muted">{job.company}</p>
@@ -128,7 +128,7 @@ export function JobList() {
         title="Jobs"
         description="Every job you've saved, with a fit estimate for your active resume."
         actions={
-          <ButtonLink href="/app/match" variant="primary">
+          <ButtonLink href="/demo/match" variant="primary">
             <Plus className="size-4" aria-hidden />
             Match a new job
           </ButtonLink>
@@ -207,7 +207,7 @@ export function JobList() {
             icon={<IconComposition icon={Briefcase} />}
             title="No jobs yet"
             body="Paste a job description to see how well your resume fits it, and what to improve."
-            action={<ButtonLink href="/app/match" variant="primary"><Sparkles className="size-4" aria-hidden />Match your first job</ButtonLink>}
+            action={<ButtonLink href="/demo/match" variant="primary"><Sparkles className="size-4" aria-hidden />Match your first job</ButtonLink>}
           />
         )
       ) : (

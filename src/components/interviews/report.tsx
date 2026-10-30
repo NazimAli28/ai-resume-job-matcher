@@ -289,7 +289,7 @@ export function InterviewReport() {
 
   if (!session) {
     return ready ? (
-      <EmptyState title="We couldn't find that report" body="It may have been reset with the demo data." action={<Link href="/app/interviews" className="font-semibold underline">Back to mock interviews</Link>} />
+      <EmptyState title="We couldn't find that report" body="It may have been reset with the demo data." action={<Link href="/demo/interviews" className="font-semibold underline">Back to mock interviews</Link>} />
     ) : (
       <p className="py-16 text-center text-muted" role="status">Loading your report</p>
     );
@@ -299,7 +299,7 @@ export function InterviewReport() {
       <EmptyState
         title="This interview isn't finished"
         body="Finish the questions to get your report."
-        action={<ButtonLink href={`/app/interviews/${session.id}`} variant="primary">Resume interview</ButtonLink>}
+        action={<ButtonLink href={`/demo/interviews/${session.id}`} variant="primary">Resume interview</ButtonLink>}
       />
     );
   }
@@ -330,14 +330,14 @@ export function InterviewReport() {
     );
     dispatch({ type: "SAVE_INTERVIEW", session: next });
     dispatch({ type: "INCREMENT_USAGE", key: "interviews" });
-    router.push(`/app/interviews/${next.id}`);
+    router.push(`/demo/interviews/${next.id}`);
   };
 
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader
         back={
-          <Link href="/app/interviews" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink">
+          <Link href="/demo/interviews" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink">
             <ArrowLeft className="size-4" aria-hidden /> Mock interviews
           </Link>
         }
@@ -348,7 +348,7 @@ export function InterviewReport() {
             <Button variant="primary" onClick={practiceAgain} disabled={!job || limited}>
               <RotateCcw className="size-4" aria-hidden /> Practice again
             </Button>
-            {job && <ButtonLink href={`/app/jobs/${job.id}`}>Back to job</ButtonLink>}
+            {job && <ButtonLink href={`/demo/jobs/${job.id}`}>Back to job</ButtonLink>}
           </>
         }
       />

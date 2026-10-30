@@ -27,7 +27,7 @@ export function InterviewList() {
   const cta = limited ? (
     <Button variant="primary" size="lg" disabled>Start a practice interview</Button>
   ) : (
-    <ButtonLink href="/app/interviews/new" variant="primary" size="lg">
+    <ButtonLink href="/demo/interviews/new" variant="primary" size="lg">
       <Mic className="size-5" aria-hidden /> Start a practice interview
     </ButtonLink>
   );
@@ -75,7 +75,7 @@ export function InterviewList() {
               }
               title="No practice interviews yet"
               body="Pick a saved job and we will ask questions based on what it requires and what is on your resume. You get a report with model answers built from your real experience."
-              action={limited ? undefined : <ButtonLink href="/app/interviews/new" variant="primary">Start a practice interview</ButtonLink>}
+              action={limited ? undefined : <ButtonLink href="/demo/interviews/new" variant="primary">Start a practice interview</ButtonLink>}
             />
           </Item>
         ) : (
@@ -142,7 +142,7 @@ export function InterviewList() {
                 {sessions.map((s) => {
                   const job = jobById(s.jobId);
                   const answered = s.answers.filter((a) => a.answer.trim()).length;
-                  const href = s.status === "IN_PROGRESS" ? `/app/interviews/${s.id}` : `/app/interviews/${s.id}/report`;
+                  const href = s.status === "IN_PROGRESS" ? `/demo/interviews/${s.id}` : `/demo/interviews/${s.id}/report`;
                   const TypeIcon = TYPE_ICON[s.type];
                   return (
                     <li key={s.id} className="min-w-0">

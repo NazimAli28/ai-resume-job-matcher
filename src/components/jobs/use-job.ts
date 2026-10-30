@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useDemo } from "@/demo/store";
 import { liveMatch } from "./lib/match";
 
-/** The job for the current /app/jobs/[id] route plus its live (override-aware) match. */
+/** The job for the current /demo/jobs/[id] route plus its live (override-aware) match. */
 export function useJob() {
   const params = useParams<{ id: string }>();
   const demo = useDemo();

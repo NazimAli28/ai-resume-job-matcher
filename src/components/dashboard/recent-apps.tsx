@@ -31,7 +31,7 @@ function VersionChip({ app }: { app: Application }) {
   if (!app.appliedAt) return <Chip className="border border-dashed border-rule-strong text-xs leading-5 text-muted">Not sent yet</Chip>;
   return (
     <Link
-      href={`/app/resumes/${r.id}`}
+      href={`/demo/resumes/${r.id}`}
       className="inline-flex min-h-7 items-center whitespace-nowrap rounded-full border border-rule px-2.5 text-xs font-semibold hover:border-rule-strong hover:bg-sunken"
     >
       Sent with {r.label}
@@ -50,12 +50,12 @@ export function RecentApplications() {
         id="recent-title"
         title="Recent applications"
         sub="Most recently updated first"
-        action={<Link href="/app/applications" className={linkClass}>View all</Link>}
+        action={<Link href="/demo/applications" className={linkClass}>View all</Link>}
       />
       {apps.length === 0 ? (
         <div className="flex flex-col items-start gap-3">
           <p className="text-muted">Once you apply somewhere, it shows up here with the resume version you sent.</p>
-          <ButtonLink href="/app/applications" variant="primary">Add an application</ButtonLink>
+          <ButtonLink href="/demo/applications" variant="primary">Add an application</ButtonLink>
         </div>
       ) : (
         <div className="flex flex-col">
@@ -75,7 +75,7 @@ export function RecentApplications() {
                 key={a.id}
                 className="grid grid-cols-1 items-center gap-x-3 gap-y-2 py-3 @2xl:grid-cols-[minmax(0,1fr)_7rem_6rem_6.5rem_5.5rem]"
               >
-                <Link href={`/app/applications?open=${a.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
+                <Link href={`/demo/applications?open=${a.id}`} className="flex min-w-0 items-center gap-3 rounded-xl">
                   <CompanyTile name={a.company} size="sm" />
                   <span className="min-w-0">
                     <span className="block truncate font-semibold hover:underline">{a.company}</span>

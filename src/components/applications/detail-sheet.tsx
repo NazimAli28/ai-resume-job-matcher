@@ -82,7 +82,7 @@ function ResumeSent({ app }: { app: Application }) {
             </p>
           )}
           <div>
-            <ButtonLink href={`/app/resumes/${r.id}`} size="sm">Open {r.label}</ButtonLink>
+            <ButtonLink href={`/demo/resumes/${r.id}`} size="sm">Open {r.label}</ButtonLink>
           </div>
         </div>
       ) : (
@@ -100,7 +100,7 @@ function JobSnapshot({ app }: { app: Application }) {
     return (
       <Section title="Job snapshot" icon={Briefcase}>
         <p className="text-muted">You added this one by hand, so there is no saved job description. Save the job to see how your resume matches it.</p>
-        <div><ButtonLink href="/app/jobs" size="sm">Go to Jobs</ButtonLink></div>
+        <div><ButtonLink href="/demo/jobs" size="sm">Go to Jobs</ButtonLink></div>
       </Section>
     );
   }
@@ -122,7 +122,7 @@ function JobSnapshot({ app }: { app: Application }) {
           <li key={r.id}>{r.text}</li>
         ))}
       </ul>
-      <div><ButtonLink href={`/app/jobs/${job.id}`} size="sm">Open job details</ButtonLink></div>
+      <div><ButtonLink href={`/demo/jobs/${job.id}`} size="sm">Open job details</ButtonLink></div>
     </Section>
   );
 }
@@ -193,7 +193,7 @@ export function DetailSheet({ id, onClose }: { id: string | null; onClose: () =>
             <Section title="Actions" icon={Settings2}>
               <div className="flex flex-wrap gap-2">
                 {jobById(app.jobId) && (
-                  <ButtonLink href={`/app/interviews/new?job=${app.jobId}`} variant="primary">Practice for this job</ButtonLink>
+                  <ButtonLink href={`/demo/interviews/new?job=${app.jobId}`} variant="primary">Practice for this job</ButtonLink>
                 )}
                 {app.status !== "WITHDRAWN" && (
                   <Button variant="danger" onClick={() => setConfirmWithdraw(true)}>Withdraw application</Button>

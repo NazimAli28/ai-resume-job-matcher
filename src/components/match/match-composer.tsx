@@ -159,7 +159,7 @@ export function MatchComposer({ compact = false }: { compact?: boolean }) {
     dispatch({ type: "SET_ACTIVE_RESUME", id: resume.id });
     dispatch({ type: "ADD_JOB", job, match });
     toast(`Matched ${resume.label} against ${job.title} at ${job.company}`);
-    router.push(`/app/jobs/${id}`);
+    router.push(`/demo/jobs/${id}`);
   };
 
   if (phase === "reading") {
@@ -269,7 +269,7 @@ export function MatchComposer({ compact = false }: { compact?: boolean }) {
                   <Plus className="size-4" aria-hidden /> Upload a new resume
                 </button>
                 {compact && resumes.length > shown.length && (
-                  <Link href="/app/match" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted hover:text-ink">
+                  <Link href="/demo/match" className="inline-flex min-h-11 items-center text-sm font-semibold text-muted hover:text-ink">
                     All {resumes.length} versions
                   </Link>
                 )}

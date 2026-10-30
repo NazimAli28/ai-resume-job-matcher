@@ -122,7 +122,7 @@ export function SiteHeader() {
           <ThemeToggle />
           {/* Wrapper does the hiding: the button's own inline-flex would beat `hidden`. Phones get the bottom CTA bar instead. */}
           <span className="hidden sm:block">
-            <ButtonLink href="/app" variant="primary" size="md">
+            <ButtonLink href="/demo" variant="primary" size="md">
               Try the demo
             </ButtonLink>
           </span>
