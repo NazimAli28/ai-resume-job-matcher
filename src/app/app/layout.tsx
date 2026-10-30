@@ -14,7 +14,17 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
     <div className="ambient flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 px-3 pt-3">
         <div className="card mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2 backdrop-blur-xl [background:color-mix(in_oklab,var(--surface)_82%,transparent)]">
-          <Logo />
+          <div className="flex min-w-0 items-center gap-1 sm:gap-4">
+            <Logo compact />
+            <nav aria-label="Main" className="flex items-center gap-1">
+              <Link href="/app" className="inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink">
+                Home
+              </Link>
+              <Link href="/app/profile" className="inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink">
+                Profile
+              </Link>
+            </nav>
+          </div>
           <div className="flex items-center gap-2">
             <span className="hidden max-w-[16rem] truncate text-sm text-muted sm:block">{user.email}</span>
             <form action={signOut}>
