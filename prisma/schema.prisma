@@ -1,4 +1,4 @@
-// Spec: docs/prd/04-architecture.md §4. Models arrive phase by phase (Phase 1 identity/platform, Phase 2 profile).
+// Spec: docs/prd/04-architecture.md §4. Models arrive phase by phase (Phase 1 identity/platform, Phase 2 profile, Phase 3 resumes).
 // Every table gets RLS enabled with no policies (deny-all for anon/authenticated) in its migration.
 
 generator client {
@@ -76,6 +76,33 @@ enum FactSource {
   INTERVIEW
 }
 
+enum FileKind {
+  PDF
+  DOCX
+}
+
+enum UploadStatus {
+  PENDING
+  UPLOADED
+  PARSED
+  REJECTED
+  FAILED
+}
+
+enum ResumeVersionSource {
+  UPLOAD
+  MANUAL
+  TAILORED
+  SUGGESTIONS_APPLIED
+  DUPLICATE
+}
+
+enum ResumeVersionState {
+  DRAFT
+  LOCKED
+  ARCHIVED
+}
+
 enum ConsentType {
   TERMS
   PRIVACY
@@ -109,6 +136,8 @@ model User {
   consents ConsentRecord[]
   tasks    BackgroundTask[]
   profile  Profile?
+  uploads  ResumeUpload[]
+  versions ResumeVersion[]
 
   @@index([lastSeenAt])
   @@index([deletedAt])
@@ -349,4 +378,71 @@ model FactBankItem {
 
   @@index([userId])
   @@index([userId, skillName])
+}
+
+// ───────────────────────────── Resumes (Phase 3) ─────────────────────────────
+/// A file the user uploaded. Stored in the private "resumes" bucket at storageKey; originalName is display-only.
+model ResumeUpload {
+  id           String        @id @default(uuid(7))
+  userId       String
+  storageKey   String        @unique
+  originalName String
+  kind         FileKind?
+  sizeBytes    Int
+  sha256       String?
+  pageCount    Int?
+  status       UploadStatus  @default(PENDING)
+  rejectReason String?
+  /// What a simple parser likely sees, ≤ 30k chars. Deleted with the account.
+  atsText      String?
+  /// Original file removed from storage (user setting or after rejection).
+  fileDeletedAt DateTime?
+  createdAt    DateTime      @default(now())
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions     ResumeVersion[]
+
+  @@index([userId, createdAt])
+}
+
+/// An immutable-once-locked resume. content = ResumeDoc (src/server/resume/types.ts).
+model ResumeVersion {
+  id            String              @id @default(uuid(7))
+  userId        String
+  uploadId      String?
+  parentId      String?
+  jobId         String?
+  label         String
+  name          String
+  source        ResumeVersionSource
+  state         ResumeVersionState  @default(DRAFT)
+  targetMarket  TargetMarket
+  schemaVersion Int                 @default(1)
+  content       Json
+  contentHash   String
+  lockedAt      DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime            @default(now())
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upload        ResumeUpload?       @relation(fields: [uploadId], references: [id], onDelete: SetNull)
+  parent        ResumeVersion?      @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children      ResumeVersion[]     @relation("Lineage")
+  analyses      ResumeAnalysis[]
+
+  @@index([userId, createdAt])
+}
+
+/// Deterministic analysis of a version (Phase 4 may add AI notes; they never change the numbers).
+model ResumeAnalysis {
+  id              String        @id @default(uuid(7))
+  userId          String
+  resumeVersionId String
+  parseHealth     Int
+  readability     Int
+  parts           Json
+  findings        Json
+  engineVersion   String
+  createdAt       DateTime      @default(now())
+  resumeVersion   ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, resumeVersionId])
 }

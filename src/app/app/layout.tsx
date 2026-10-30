@@ -17,10 +17,13 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
           <div className="flex min-w-0 items-center gap-1 sm:gap-4">
             <Logo compact />
             <nav aria-label="Main" className="flex items-center gap-1">
-              <Link href="/app" className="inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink">
+              <Link href="/app" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Home
               </Link>
-              <Link href="/app/profile" className="inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink">
+              <Link href="/app/resumes" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
+                Resumes
+              </Link>
+              <Link href="/app/profile" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Profile
               </Link>
             </nav>
