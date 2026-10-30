@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signInWithGoogle } from "@/app/(auth)/actions";
 import { Divider, FormAlert, GoogleButton } from "@/components/auth/auth-ui";
 import { LoginForm } from "@/components/auth/forms";
+import { FEATURES } from "@/config/features";
 import { safeNext } from "@/server/auth/schemas";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -26,14 +27,22 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       </div>
       {notice && <FormAlert tone={notice.tone}>{notice.text}</FormAlert>}
       <GoogleButton action={signInWithGoogle} next={next} label="Continue with Google" />
-      <Divider />
-      <LoginForm next={next} />
-      <p className="text-center text-sm text-muted">
-        New here?{" "}
-        <Link href="/signup" className="font-semibold text-ink underline underline-offset-4">
-          Create a free account
-        </Link>
-      </p>
+      {FEATURES.EMAIL_PASSWORD_AUTH ? (
+        <>
+          <Divider />
+          <LoginForm next={next} />
+          <p className="text-center text-sm text-muted">
+            New here?{" "}
+            <Link href="/signup" className="font-semibold text-ink underline underline-offset-4">
+              Create a free account
+            </Link>
+          </p>
+        </>
+      ) : (
+        <p className="text-center text-sm text-muted">
+          New here? The same button creates your free account. Email sign-in is coming soon.
+        </p>
+      )}
     </div>
   );
 }

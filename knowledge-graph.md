@@ -47,6 +47,7 @@
   - Configurable AI mock interview with a scored report and model answers.
 
 ## Decisions (all 2026-10-20; full table in [PRD §3](docs/PRD.md))
+- **[V] Founder, 2026-10-31:** **Beta sign-in is Google-only** (option 2; no domain yet). Email/password code stays behind `FEATURES.EMAIL_PASSWORD_AUTH=false` (`src/config/features.ts`): actions refuse, and the forgot/reset pages redirect to /login. Turn it on after Resend + a verified domain. Facts verified in docs: since 2024-09-26 Supabase default SMTP only sends to org members (2/h); Resend without a domain only sends to the account owner. Legal operator: **founder's name** (exact spelling pending); contact email blank for now.
 - **[V] Founder, 2026-10-30:**
   - **Name: "AI Resume & Job Matcher"**, stored in `src/config/brand.ts` with logo mark "RM". The public GitHub repo is `ai-resume-job-matcher`, since GitHub names can't contain spaces or "&".
   - **Repo is public.**

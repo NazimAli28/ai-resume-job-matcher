@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { ResetForm } from "@/components/auth/forms";
+import { FEATURES } from "@/config/features";
 import { currentUserId } from "@/server/auth/user";
 
 export const metadata: Metadata = { title: "Choose a new password" };
 
 export default async function ResetPage() {
+  if (!FEATURES.EMAIL_PASSWORD_AUTH) redirect("/login");
   // Reached through the emailed link, which signs the user in for this one step.
   if (!(await currentUserId())) redirect("/login?error=link");
   return (

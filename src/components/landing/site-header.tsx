@@ -20,14 +20,14 @@ export const ANCHORS = [
 
 export function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 rounded-full py-1 pr-2">
+    <Link href="/" aria-label={`${PRODUCT_NAME} home`} className="flex items-center gap-2.5 rounded-full py-1 pr-2">
       <span
         aria-hidden
         className="grid size-8 place-items-center rounded-[10px] bg-hl font-display text-[15px] font-extrabold text-on-hl glow"
       >
         {LOGO_MARK}
       </span>
-      <span className="whitespace-nowrap font-display text-[15px] font-bold leading-tight min-[380px]:text-[17px]">{PRODUCT_NAME}</span>
+      <span className="hidden whitespace-nowrap font-display text-[15px] font-bold leading-tight min-[400px]:inline sm:text-[17px]">{PRODUCT_NAME}</span>
     </Link>
   );
 }
@@ -120,6 +120,9 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
+          <Link href="/login" className="inline-flex min-h-11 items-center rounded-full px-3 text-[14px] font-semibold text-muted hover:text-ink">
+            Sign in
+          </Link>
           {/* Wrapper does the hiding: the button's own inline-flex would beat `hidden`. Phones get the bottom CTA bar instead. */}
           <span className="hidden sm:block">
             <ButtonLink href="/demo" variant="primary" size="md">
