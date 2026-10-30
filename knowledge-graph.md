@@ -5,6 +5,11 @@
 > Last updated: 2026-10-20
 
 ## Status
+- **[V] 2026-10-31: Live on Vercel.**
+  - Project **`ai-resume-job-matcher-e5sg`** (founder import, team Nazim). Production URL **https://airesumejobmatcher.vercel.app**; the plain `ai-resume-job-matcher.vercel.app` is taken by someone else.
+  - Served from sin1, with security headers verified by curl. `/app` → 307 to /login.
+  - Env vars present: Supabase URL, publishable key, secret key, DIRECT_URL, CRON_SECRET, HASH_PEPPER. **Missing: DATABASE_URL and NEXT_PUBLIC_APP_URL** (founder to add).
+  - A duplicate empty project `ai-resume-job-matcher` (domain `ai-resume-job-matcher-self.vercel.app`) was created by the connector despite its error. The founder should delete it so each push doesn't build twice.
 - **[V] 2026-10-31: Phase 1 code complete, not yet live.** CI is green.
   - Demo moved to `/demo`. `/app` is the real signed-in area, gated by `src/proxy.ts` and `requireUser()`, which checks session, deleted/blocked state and current consent.
   - Auth (`src/app/(auth)/`): sign up, sign in, Google, forgot/reset, sign out local/global, `/consent`, `/check-email`. Helpers live in `src/server/auth/*`. HIBP k-anonymity breach check (fails open). Rate limits: signup 5/h/IP; login 20/15m/IP + 8/15m/email; reset 3/h/email.
