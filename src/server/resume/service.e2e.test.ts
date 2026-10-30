@@ -10,10 +10,12 @@ vi.mock("server-only", () => ({}));
 const hasEnv = Boolean(process.env.DATABASE_URL && process.env.SUPABASE_SECRET_KEY);
 
 describe.skipIf(!hasEnv)("resume upload end to end", async () => {
+  if (!hasEnv) return;
   const { db } = await import("../db");
   const svc = await import("./service");
   const { supabaseAdmin } = await import("../supabase/admin");
-  const browser = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);
+  // Created lazily: the describe body is evaluated even when skipped (CI has no env).
+  const browser = hasEnv ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!) : (null as never);
   const user = randomUUID();
   const other = randomUUID();
 
