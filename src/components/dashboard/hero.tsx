@@ -85,15 +85,15 @@ export function GreetingCard() {
 function secondaryFor(a: NextBestAction): { label: string; href: string } {
   switch (a.kind) {
     case "PRACTICE":
-      return { label: "Open tracker", href: "/app/applications" };
+      return { label: "Open tracker", href: "/demo/applications" };
     case "FIX_FINDINGS":
-      return { label: "See all versions", href: "/app/resumes" };
+      return { label: "See all versions", href: "/demo/resumes" };
     case "TAILOR":
-      return { label: "Open tracker", href: "/app/applications" };
+      return { label: "Open tracker", href: "/demo/applications" };
     case "ALL_CLEAR":
-      return { label: "Practice an interview", href: "/app/interviews/new" };
+      return { label: "Practice an interview", href: "/demo/interviews/new" };
     default:
-      return { label: "Open tracker", href: "/app/applications" };
+      return { label: "Open tracker", href: "/demo/applications" };
   }
 }
 

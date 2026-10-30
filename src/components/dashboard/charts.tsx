@@ -63,7 +63,7 @@ export function PipelineCard() {
         id="pipe-title"
         title="Pipeline"
         sub="Applications that reached each stage"
-        action={<Link href="/app/applications" className={linkClass}>Open board</Link>}
+        action={<Link href="/demo/applications" className={linkClass}>Open board</Link>}
       />
       <Funnel data={rows.map((r) => ({ label: STATUS_LABEL[r.status], value: r.value }))} label="Applications that reached each stage or later" />
       <p className="mt-auto rounded-xl bg-sunken/70 px-3 py-2.5 text-sm">

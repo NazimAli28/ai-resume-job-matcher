@@ -32,20 +32,20 @@ export function JobActions({ job, application }: { job: Job; application?: Appli
         <h2 id="next-heading" className="font-display text-xl font-bold">What to do next</h2>
       </div>
       <div className="flex flex-col gap-2">
-        <ButtonLink href={`/app/jobs/${job.id}/tailor`} variant="primary" className="justify-start">
+        <ButtonLink href={`/demo/jobs/${job.id}/tailor`} variant="primary" className="justify-start">
           <PenLine className="size-4" aria-hidden />
           Tailor my resume
         </ButtonLink>
-        <ButtonLink href={`/app/jobs/${job.id}/cover-letter`} className="justify-start">
+        <ButtonLink href={`/demo/jobs/${job.id}/cover-letter`} className="justify-start">
           <FileText className="size-4" aria-hidden />
           Write a cover letter
         </ButtonLink>
-        <ButtonLink href={`/app/interviews/new?job=${job.id}`} className="justify-start">
+        <ButtonLink href={`/demo/interviews/new?job=${job.id}`} className="justify-start">
           <Mic className="size-4" aria-hidden />
           Practice for this job
         </ButtonLink>
         {application ? (
-          <Link href="/app/applications" className="inline-flex min-h-11 items-center gap-2 px-4 text-[15px] font-semibold text-hl-ink underline-offset-4 hover:underline">
+          <Link href="/demo/applications" className="inline-flex min-h-11 items-center gap-2 px-4 text-[15px] font-semibold text-hl-ink underline-offset-4 hover:underline">
             <KanbanSquare className="size-4" aria-hidden />
             Already tracked: view in applications
           </Link>

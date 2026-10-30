@@ -1,0 +1,208 @@
+// Spec: docs/prd/04-architecture.md §4. Models arrive phase by phase; this file holds Phase 1.
+// Every table gets RLS enabled with no policies (deny-all for anon/authenticated) in its migration.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+  SPRINT
+}
+
+enum TaskStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum TaskType {
+  RESUME_PARSE
+  RESUME_ANALYZE
+  JOB_EXTRACT
+  MATCH_COMPUTE
+  RESUME_TAILOR
+  EXPORT_RENDER
+  INTERVIEW_EVALUATE
+  COVERLETTER_GENERATE
+  REMINDERS_DISPATCH
+  REMINDER_SEND
+  RETENTION_INACTIVITY
+  RETENTION_INTERVIEW_ANSWERS
+  PRIVACY_EXPORT
+  ACCOUNT_DELETE
+  ACCOUNT_DELETE_FINALIZE
+  STORAGE_SWEEP
+  EXPORT_PURGE
+  PRIVACY_EXPORT_EXPIRE
+  OPS_COST_REPORT
+  INTERVIEW_CLOSE_ABANDONED
+  ERROR_DIGEST
+  DB_HOUSEKEEPING
+}
+
+enum ErrorSource {
+  ROUTE
+  ACTION
+  TASK
+  RENDER
+  CLIENT
+}
+
+enum ConsentType {
+  TERMS
+  PRIVACY
+  AGE_16_PLUS
+  SENSITIVE_DATA
+  AI_PROCESSING
+  TRAINING_OPT_IN
+  MARKETING_EMAIL
+  ANALYTICS_COOKIES
+  SUPPORT_ACCESS
+  EU_WITHDRAWAL_WAIVER
+}
+
+// ───────────────────────────── Identity ─────────────────────────────
+/// id = Supabase auth.users.id. Credentials and sessions live in Supabase's auth schema (not modeled).
+model User {
+  id            String    @id
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          Role      @default(USER)
+  plan          Plan      @default(FREE)
+  isBetaUser    Boolean   @default(true)
+  blockedAt     DateTime?
+  lastSeenAt    DateTime  @default(now())
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  consents ConsentRecord[]
+  tasks    BackgroundTask[]
+
+  @@index([lastSeenAt])
+  @@index([deletedAt])
+}
+
+/// Append-only; the latest row per (userId, type) wins.
+model ConsentRecord {
+  id         String      @id @default(uuid(7))
+  userId     String
+  type       ConsentType
+  granted    Boolean
+  docVersion String
+  ipPrefix   String?
+  createdAt  DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, createdAt])
+}
+
+// ───────────────────────────── Platform ─────────────────────────────
+/// In-house queue. payload holds IDs and enums only, never user text.
+model BackgroundTask {
+  id             String     @id @default(uuid(7))
+  userId         String?
+  type           TaskType
+  payload        Json
+  status         TaskStatus @default(QUEUED)
+  stage          String?
+  attempts       Int        @default(0)
+  maxAttempts    Int        @default(5)
+  runAt          DateTime   @default(now())
+  lockedAt       DateTime?
+  lockedBy       String?
+  lastError      String?
+  idempotencyKey String     @unique
+  parentId       String?
+  resultRef      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  user           User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, runAt])
+  @@index([userId, status])
+  @@index([type, status, createdAt])
+}
+
+/// Grouped error log. Messages are scrubbed of PII; users appear only as an HMAC.
+model ErrorEvent {
+  id          String      @id @default(uuid(7))
+  fingerprint String      @unique
+  createdAt   DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
+  count       Int         @default(1)
+  source      ErrorSource
+  route       String?
+  taskType    TaskType?
+  errorClass  String
+  message     String
+  stack       String?
+  requestId   String?
+  userIdHash  String?
+  release     String?
+  digestedAt  DateTime?
+  resolvedAt  DateTime?
+
+  @@index([lastSeenAt])
+  @@index([createdAt])
+}
+
+model RateLimitBucket {
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+  expiresAt   DateTime
+
+  @@id([key, windowStart])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid(7))
+  actorId       String?
+  subjectUserId String?
+  action        String
+  ipPrefix      String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([subjectUserId, createdAt])
+  @@index([action, createdAt])
+}
+
+/// Re-applied after any backup restore so deleted accounts stay deleted.
+model DeletionLedger {
+  id         String   @id @default(uuid(7))
+  emailHash  String
+  userIdHash String
+  deletedAt  DateTime @default(now())
+
+  @@index([emailHash])
+}
+
+/// Admin-editable key/value settings (e.g. default accent color).
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}

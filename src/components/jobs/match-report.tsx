@@ -17,7 +17,7 @@ export function MatchReport() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <BackLink href="/app/jobs" label="All jobs" />
+      <BackLink href="/demo/jobs" label="All jobs" />
       <JobHeader job={job} application={application} />
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">

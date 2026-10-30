@@ -59,7 +59,7 @@ export function ReportPage() {
         <EmptyState
           title={ready ? "We can't find that resume" : "Loading resume"}
           body="It may have been removed, or the link is wrong. Your versions are listed on the Resumes page."
-          action={<ButtonLink href="/app/resumes">Go to resumes</ButtonLink>}
+          action={<ButtonLink href="/demo/resumes">Go to resumes</ButtonLink>}
         />
       </div>
     );
@@ -89,7 +89,7 @@ export function ReportPage() {
     <div className="flex flex-col">
       <PageHeader
         back={
-          <Link href="/app/resumes" className="inline-flex min-h-11 w-fit items-center gap-1.5 text-sm text-muted hover:text-ink">
+          <Link href="/demo/resumes" className="inline-flex min-h-11 w-fit items-center gap-1.5 text-sm text-muted hover:text-ink">
             <ArrowLeft className="size-4" aria-hidden />
             All resumes
           </Link>
@@ -108,7 +108,7 @@ export function ReportPage() {
         }
         actions={
           <>
-            <ButtonLink href="/app/jobs" variant="primary">
+            <ButtonLink href="/demo/jobs" variant="primary">
               <Wand2 className="size-4" aria-hidden />
               Tailor for a job
             </ButtonLink>

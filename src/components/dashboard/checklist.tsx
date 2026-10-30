@@ -14,10 +14,10 @@ export function GettingStarted() {
   const reduce = useSkipMotion();
   const [open, setOpen] = useState(true);
   const items = [
-    { label: "Analyze your resume", done: state.resumes.length > 0 || state.usage.analyses > 0, href: "/app/resumes" },
-    { label: "Add a job you want", done: state.jobs.length > 0, href: "/app/jobs" },
-    { label: "Tailor your resume once", done: state.resumes.some((r) => r.origin === "TAILORED") || state.usage.tailored > 0, href: "/app/jobs" },
-    { label: "Practice one mock interview", done: state.interviews.length > 0, href: "/app/interviews/new" },
+    { label: "Analyze your resume", done: state.resumes.length > 0 || state.usage.analyses > 0, href: "/demo/resumes" },
+    { label: "Add a job you want", done: state.jobs.length > 0, href: "/demo/jobs" },
+    { label: "Tailor your resume once", done: state.resumes.some((r) => r.origin === "TAILORED") || state.usage.tailored > 0, href: "/demo/jobs" },
+    { label: "Practice one mock interview", done: state.interviews.length > 0, href: "/demo/interviews/new" },
   ];
   const doneCount = items.filter((i) => i.done).length;
   if (doneCount === items.length) return null;

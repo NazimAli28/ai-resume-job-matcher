@@ -276,12 +276,12 @@ export function SessionRunner() {
 
   const completed = session?.status === "COMPLETED";
   useEffect(() => {
-    if (completed) router.replace(`/app/interviews/${id}/report`);
+    if (completed) router.replace(`/demo/interviews/${id}/report`);
   }, [completed, id, router]);
 
   if (!session) {
     return ready ? (
-      <EmptyState title="We couldn't find that interview" body="It may have been reset with the demo data." action={<Link href="/app/interviews" className="font-semibold underline">Back to mock interviews</Link>} />
+      <EmptyState title="We couldn't find that interview" body="It may have been reset with the demo data." action={<Link href="/demo/interviews" className="font-semibold underline">Back to mock interviews</Link>} />
     ) : (
       <p className="py-16 text-center text-muted" role="status">Loading your interview</p>
     );
@@ -305,12 +305,12 @@ export function SessionRunner() {
     if (!job) return;
     if (!answers.some((a) => a.answer.trim())) {
       dispatch({ type: "SAVE_INTERVIEW", session: { ...session, status: "ABANDONED" } });
-      router.push("/app/interviews");
+      router.push("/demo/interviews");
       return;
     }
     const { evaluations, overall } = evaluateSession(session, job, state.profile);
     dispatch({ type: "SAVE_INTERVIEW", session: { ...session, status: "COMPLETED", evaluations, overall } });
-    router.push(`/app/interviews/${session.id}/report`);
+    router.push(`/demo/interviews/${session.id}/report`);
   };
 
   if (finishing || idx >= total) {

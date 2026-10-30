@@ -17,7 +17,7 @@ export function InterviewReadinessCard() {
   const sessions = completedSessions(state.interviews);
   const last = sessions[sessions.length - 1];
   const upcoming = nextInterview(state.applications);
-  const practiceHref = upcoming ? `/app/interviews/new?job=${upcoming.app.jobId}` : "/app/interviews/new";
+  const practiceHref = upcoming ? `/demo/interviews/new?job=${upcoming.app.jobId}` : "/demo/interviews/new";
   const practiceLabel = upcoming ? `Practice for ${upcoming.app.company}` : "Start a mock interview";
 
   if (!last || last.overall === undefined) {
@@ -79,7 +79,7 @@ export function InterviewReadinessCard() {
         <ButtonLink href={practiceHref} variant="primary" size="sm">
           {practiceLabel}
         </ButtonLink>
-        <Link href={`/app/interviews/${last.id}/report`} className={linkClass}>
+        <Link href={`/demo/interviews/${last.id}/report`} className={linkClass}>
           See the report
         </Link>
       </div>

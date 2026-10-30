@@ -89,7 +89,7 @@ function Writer({ job, reqs }: { job: Job; reqs: EffectiveRequirement[] }) {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        back={<BackLink href={`/app/jobs/${job.id}`} label="Back to the match" />}
+        back={<BackLink href={`/demo/jobs/${job.id}`} label="Back to the match" />}
         title={`Cover letter for ${job.company}`}
         description={`${job.title}. Built only from your profile and resume, plus the job's title and company.`}
       />
@@ -173,7 +173,7 @@ function Writer({ job, reqs }: { job: Job; reqs: EffectiveRequirement[] }) {
               {limited && !savedId && (
                 <p className="text-sm">
                   You&apos;ve used all {state.limits.coverLetters} cover letters on your plan this month. You can still copy or download this one.{" "}
-                  <Link href="/app/settings" className="font-semibold text-hl-ink underline underline-offset-4">See your plan</Link>
+                  <Link href="/demo/settings" className="font-semibold text-hl-ink underline underline-offset-4">See your plan</Link>
                 </p>
               )}
             </>

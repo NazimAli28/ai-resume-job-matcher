@@ -39,7 +39,7 @@ export function ResumeChip({ app }: { app: Application }) {
   if (!r) return null;
   return (
     <Link
-      href={`/app/resumes/${r.id}`}
+      href={`/demo/resumes/${r.id}`}
       className="inline-flex min-h-7 items-center rounded-full border border-rule px-2.5 text-[13px] font-semibold hover:border-hl-ink hover:bg-hl-soft"
     >
       Sent with {r.label}

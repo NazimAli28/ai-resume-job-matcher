@@ -43,7 +43,7 @@ export function UpcomingCard() {
         id="up-title"
         title="Upcoming"
         sub="Next 14 days, plus anything overdue"
-        action={<Link href="/app/applications" className={linkClass}>Tracker</Link>}
+        action={<Link href="/demo/applications" className={linkClass}>Tracker</Link>}
       />
       {items.length === 0 ? (
         <p className="text-muted">Nothing scheduled. Add a next action or an interview round to any application to see it here.</p>
@@ -71,7 +71,7 @@ export function UpcomingCard() {
                       <Chip className={cn("text-xs leading-5", k.className)}>{k.label}</Chip>
                     </p>
                     <p className="truncate text-sm">
-                      <Link href={`/app/applications?open=${it.app.id}`} className="text-muted underline-offset-4 hover:text-ink hover:underline">
+                      <Link href={`/demo/applications?open=${it.app.id}`} className="text-muted underline-offset-4 hover:text-ink hover:underline">
                         {it.app.company}
                       </Link>
                       <span className={cn(urgent ? "font-semibold text-warn" : "text-muted")}>

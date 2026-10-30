@@ -37,7 +37,7 @@ export function ResumeHealthCard() {
       <section aria-labelledby="rh-title" className="card flex h-full flex-col gap-4 p-5 sm:p-6">
         <CardHeader icon={FileText} id="rh-title" title="Resume health" />
         <p className="text-muted">Upload a resume to see how well parsers can read it.</p>
-        <div><ButtonLink href="/app/resumes" variant="primary">Analyze a resume</ButtonLink></div>
+        <div><ButtonLink href="/demo/resumes" variant="primary">Analyze a resume</ButtonLink></div>
       </section>
     );
   }
@@ -86,7 +86,7 @@ export function ResumeHealthCard() {
         )}
       </div>
       <div className="mt-auto">
-        <Link href={`/app/resumes/${r.id}`} className={linkClass}>
+        <Link href={`/demo/resumes/${r.id}`} className={linkClass}>
           Review fixes
         </Link>
       </div>

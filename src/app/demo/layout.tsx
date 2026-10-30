@@ -6,7 +6,7 @@ import { DemoProvider } from "@/demo/store";
 
 export const metadata: Metadata = { title: `${PRODUCT_NAME} (demo)` };
 
-export default function AppLayout({ children }: LayoutProps<"/app">) {
+export default function AppLayout({ children }: LayoutProps<"/demo">) {
   return (
     <DemoProvider>
       <ToastProvider>
