@@ -3,7 +3,7 @@
  * (tracked in knowledge-graph.md open questions). Never guess these.
  */
 export const OPERATOR = {
-  name: "", // legal name of the person or company operating the service
+  name: "Muhammad Nazim Ali", // legal name of the person operating the service (founder, 2026-10-31)
   country: "Pakistan",
   contactEmail: "", // a monitored inbox for privacy and legal requests
 };
