@@ -5,6 +5,12 @@
 > Last updated: 2026-10-20
 
 ## Status
+- **[V] 2026-10-31: Phase 1 live and verified end to end on https://airesumejobmatcher.vercel.app.**
+  - The founder signed in with Google, passed the /consent step, and saw /app.
+  - DB check: 1 User (verified, USER/FREE/beta); consents TERMS/PRIVACY at current versions, AGE_16_PLUS, MARKETING=false; IP stored as /24 only; AuditLog LOGIN method=google; 0 ErrorEvents.
+  - Supabase: only the Google provider is on (Email provider off); OAuth scopes are email+profile. Google app is published (In production, no logo, so no brand review).
+  - Vercel: all 8 env vars set; the duplicate project was deleted; the remaining project is renamed `ai-resume-job-matcher`.
+  - **Deferred from Phase 1:** BackgroundTask worker + pg_cron tick (built in Phase 3 with the first async task; pg_cron needs the CRON_SECRET in Supabase Vault, which the founder pastes); Resend SMTP (needs a domain); 7-day idle / 30-day absolute session limits (verify Supabase free-plan settings, else enforce via `lastSeenAt`); Settings page and "sign out everywhere" (the latter is on /app).
 - **[V] 2026-10-31: Live on Vercel.**
   - Project **`ai-resume-job-matcher-e5sg`** (founder import, team Nazim). Production URL **https://airesumejobmatcher.vercel.app**; the plain `ai-resume-job-matcher.vercel.app` is taken by someone else.
   - Served from sin1, with security headers verified by curl. `/app` → 307 to /login.
