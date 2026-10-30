@@ -18,16 +18,21 @@ export const ANCHORS = [
   { id: "faq", label: "FAQ" },
 ];
 
-export function Logo() {
+/** `compact` shows the name only from md up (for headers that also carry navigation). */
+export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" aria-label={`${PRODUCT_NAME} home`} className="flex items-center gap-2.5 rounded-full py-1 pr-2">
+    <Link href="/" aria-label={`${PRODUCT_NAME} home`} className="flex shrink-0 items-center gap-2.5 rounded-full py-1 pr-2">
       <span
         aria-hidden
         className="grid size-8 place-items-center rounded-[10px] bg-hl font-display text-[15px] font-extrabold text-on-hl glow"
       >
         {LOGO_MARK}
       </span>
-      <span className="hidden whitespace-nowrap font-display text-[15px] font-bold leading-tight min-[400px]:inline sm:text-[17px]">{PRODUCT_NAME}</span>
+      <span
+        className={`hidden whitespace-nowrap font-display text-[15px] font-bold leading-tight sm:text-[17px] ${compact ? "lg:inline" : "min-[400px]:inline"}`}
+      >
+        {PRODUCT_NAME}
+      </span>
     </Link>
   );
 }

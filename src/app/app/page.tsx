@@ -4,8 +4,55 @@ import { signOut } from "@/app/(auth)/actions";
 import { FormAlert } from "@/components/auth/auth-ui";
 import { ButtonLink } from "@/components/ui/button";
 import { requireUser } from "@/server/auth/user";
+import { db } from "@/server/db";
 
 export const metadata: Metadata = { title: "Home" };
+
+/** First step of the real app: the profile everything else draws on. */
+async function ProfileStep({ userId }: { userId: string }) {
+  const p = await db.profile.findUnique({
+    where: { userId },
+    select: { onboardedAt: true, _count: { select: { skills: true, experiences: true, facts: true } } },
+  });
+  const started = Boolean(p?.onboardedAt);
+  const c = p?._count ?? { skills: 0, experiences: 0, facts: 0 };
+  const items = [
+    { label: "Target market and roles", done: started },
+    { label: "At least one role", done: c.experiences > 0 },
+    { label: "Your key skills", done: c.skills >= 3 },
+    { label: "One confirmed fact in your evidence bank", done: c.facts > 0 },
+  ];
+  const doneCount = items.filter((i) => i.done).length;
+  return (
+    <section className="card flex flex-col gap-4 p-6" aria-labelledby="profile-step-h">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="profile-step-h" className="font-display text-lg font-bold">
+            Step 1: your profile
+          </h2>
+          <p className="text-sm text-muted">Suggestions may only use what&apos;s here and in your resume, so a few minutes now pays off.</p>
+        </div>
+        <span className="rounded-full bg-sunken px-3 py-1 text-sm font-semibold tabular-nums">
+          {doneCount} of {items.length}
+        </span>
+      </div>
+      <ul className="grid gap-2 sm:grid-cols-2">
+        {items.map((i) => (
+          <li key={i.label} className="flex items-center gap-2 text-sm">
+            <CheckCircle2 className={i.done ? "size-4 text-hl-ink" : "size-4 text-rule-strong"} aria-hidden />
+            <span className={i.done ? "" : "text-muted"}>{i.label}</span>
+            <span className="sr-only">{i.done ? "(done)" : "(to do)"}</span>
+          </li>
+        ))}
+      </ul>
+      <div>
+        <ButtonLink href={started ? "/app/profile" : "/app/onboarding"} variant={doneCount === items.length ? "secondary" : "primary"}>
+          {started ? (doneCount === items.length ? "Review your profile" : "Continue your profile") : "Set up your profile"}
+        </ButtonLink>
+      </div>
+    </section>
+  );
+}
 
 export default async function AppHome({ searchParams }: PageProps<"/app">) {
   const user = await requireUser();
@@ -31,6 +78,8 @@ export default async function AppHome({ searchParams }: PageProps<"/app">) {
           </div>
         </div>
       </section>
+
+      <ProfileStep userId={user.id} />
 
       <section className="card flex flex-col gap-4 p-6" aria-labelledby="acct-h">
         <h2 id="acct-h" className="font-display text-lg font-bold">Your account</h2>

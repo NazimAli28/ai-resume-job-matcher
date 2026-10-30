@@ -1,4 +1,4 @@
-// Spec: docs/prd/04-architecture.md §4. Models arrive phase by phase; this file holds Phase 1.
+// Spec: docs/prd/04-architecture.md §4. Models arrive phase by phase (Phase 1 identity/platform, Phase 2 profile).
 // Every table gets RLS enabled with no policies (deny-all for anon/authenticated) in its migration.
 
 generator client {
@@ -63,6 +63,19 @@ enum ErrorSource {
   CLIENT
 }
 
+enum TargetMarket {
+  PK_LOCAL
+  INTERNATIONAL
+}
+
+/// Where a confirmed fact came from. USER = typed by the user; MATCH_QUESTION = answered a "do you have this skill?" question.
+enum FactSource {
+  USER
+  MATCH_QUESTION
+  RESUME
+  INTERVIEW
+}
+
 enum ConsentType {
   TERMS
   PRIVACY
@@ -95,6 +108,7 @@ model User {
 
   consents ConsentRecord[]
   tasks    BackgroundTask[]
+  profile  Profile?
 
   @@index([lastSeenAt])
   @@index([deletedAt])
@@ -205,4 +219,134 @@ model AppSetting {
   value     Json
   updatedBy String?
   updatedAt DateTime @updatedAt
+}
+
+// ───────────────────────────── Profile (Phase 2) ─────────────────────────────
+/// One per user. CNIC is never stored. DOB and father's name are optional PK conventions,
+/// never sent to AI, and dropped from exports for INTERNATIONAL targets.
+model Profile {
+  id                       String       @id @default(uuid(7))
+  userId                   String       @unique
+  targetMarket             TargetMarket @default(PK_LOCAL)
+  headline                 String?
+  targetTitles             String[]
+  city                     String?
+  country                  String?      @default("PK")
+  phone                    String?
+  linkedinUrl              String?
+  githubUrl                String?
+  portfolioUrl             String?
+  yearsExperience          Int?
+  includePhoto             Boolean      @default(false)
+  dateOfBirth              DateTime?    @db.Date
+  fatherName               String?
+  deleteOriginalAfterParse Boolean      @default(false)
+  onboardedAt              DateTime?
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  user                     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills                   Skill[]
+  experiences              Experience[]
+  educations               Education[]
+  projects                 Project[]
+  certifications           Certification[]
+  facts                    FactBankItem[]
+}
+
+model Skill {
+  id          String   @id @default(uuid(7))
+  userId      String
+  profileId   String
+  name        String
+  canonicalId String?
+  /// 1–5 self-rating. 1–2 = learning: counts as PARTIAL in matching (founder decision 2026-10-30).
+  level       Int?
+  years       Float?
+  createdAt   DateTime @default(now())
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+  @@index([userId, canonicalId])
+}
+
+model Experience {
+  id        String    @id @default(uuid(7))
+  userId    String
+  profileId String
+  title     String
+  employer  String
+  location  String?
+  startDate DateTime  @db.Date
+  endDate   DateTime? @db.Date
+  bullets   String[]
+  sortOrder Int       @default(0)
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  facts     FactBankItem[]
+
+  @@index([userId])
+}
+
+model Education {
+  id          String    @id @default(uuid(7))
+  userId      String
+  profileId   String
+  institution String
+  degree      String?
+  field       String?
+  startDate   DateTime? @db.Date
+  endDate     DateTime? @db.Date
+  grade       String?
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Project {
+  id          String   @id @default(uuid(7))
+  userId      String
+  profileId   String
+  name        String
+  url         String?
+  description String?
+  bullets     String[]
+  skills      String[]
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Certification {
+  id            String    @id @default(uuid(7))
+  userId        String
+  profileId     String
+  name          String
+  issuer        String?
+  issuedAt      DateTime? @db.Date
+  expiresAt     DateTime? @db.Date
+  credentialUrl String?
+  profile       Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Evidence bank: facts the user confirmed. Only confirmed facts may be used in suggestions.
+/// skillName links a fact to a skill ("I used Docker for local dev at Kinara").
+model FactBankItem {
+  id           String      @id @default(uuid(7))
+  userId       String
+  profileId    String
+  statement    String
+  metric       String?
+  skillName    String?
+  experienceId String?
+  source       FactSource  @default(USER)
+  sourceRef    Json?
+  confirmedAt  DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  profile      Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  experience   Experience? @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, skillName])
 }
