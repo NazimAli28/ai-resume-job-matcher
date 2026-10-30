@@ -5,6 +5,13 @@
 > Last updated: 2026-10-20
 
 ## Status
+- **[V] 2026-10-31: Phase 3 (resume upload + deterministic analysis) shipped; awaiting the founder's real-resume test.**
+  - Flow: `startUpload` (signed upload URL to the private `resumes` bucket; Vercel 4.5 MB body cap) → browser `uploadToSignedUrl` → `finishUpload` (download, sniff by magic bytes, extract, structure, rules, save ResumeVersion + ResumeAnalysis). Rejected files are deleted at once.
+  - Files: `src/server/resume/{files,extract}/*` (Claude; dependency-free DOCX zip reader with bomb limits; PDF via unpdf 1.9.1 pinned). Structure + rules by a Sonnet agent (`structure.ts`, `contact.ts`, `items.ts`, `lexicon.ts`, `dates.ts`, `rules/*`, engine `rules@1.0.0`). UI by a Sonnet agent (`src/app/app/resumes/*`, `src/components/resumes-real/*`).
+  - Bucket: private, 5 MB, PDF/DOCX MIME only, no storage policies. Created via `supabase/storage.sql` (outside Prisma, because the shadow DB lacks the storage schema).
+  - DB trigger `resume_version_immutable` blocks content changes on locked versions. SENSITIVE_DATA consent at first upload. Quota of 6 analyses/month (beta), counted from uploads until UsageLedger arrives in Phase 8.
+  - Tests: 96 unit + 5 e2e against real storage (upload, CNIC masked in findings, disguised file rejected and deleted, cross-account blocked, publishable key can't read the bucket, deleting the last version removes the file). CI green.
+  - **Known gaps:** P11 (needs AI), P9 geometry, PII3 photo; PDF table/image detection not implemented; PII10 fires for every INTERNATIONAL resume without work-authorization text (noisy TIP); mixed-case non-dictionary headings not detected. Real-world PDFs (Canva, LaTeX, Word export) are not yet tested; that needs the founder's files.
 - **[V] 2026-10-31: Phase 2 (profile + evidence bank) shipped; awaiting the founder's hands-on test.**
   - Migration `phase2_profile` adds Profile, Skill, Experience, Education, Project, Certification and FactBankItem (with `skillName`, `source` FactSource), all with RLS deny-all (verified).
   - `src/server/profile/{schemas,service}.ts`: every update/delete is `where {id,userId}`; per-user caps; CNIC rejected in all text; https-only URLs.
