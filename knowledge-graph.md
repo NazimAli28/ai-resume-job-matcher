@@ -5,6 +5,15 @@
 > Last updated: 2026-10-20
 
 ## Status
+- **[V] 2026-10-31: Phase 1 code complete, not yet live.** CI is green.
+  - Demo moved to `/demo`. `/app` is the real signed-in area, gated by `src/proxy.ts` and `requireUser()`, which checks session, deleted/blocked state and current consent.
+  - Auth (`src/app/(auth)/`): sign up, sign in, Google, forgot/reset, sign out local/global, `/consent`, `/check-email`. Helpers live in `src/server/auth/*`. HIBP k-anonymity breach check (fails open). Rate limits: signup 5/h/IP; login 20/15m/IP + 8/15m/email; reset 3/h/email.
+  - Error log: `captureError` with PII scrub. Audit log: SIGNUP, LOGIN, LOGOUT(_ALL), PASSWORD_CHANGED.
+  - Legal: beta Terms, Privacy and AI pages at `/legal/*`. Operator name and contact email are blank in `src/config/legal-entity.ts` until the founder confirms them.
+  - Prisma 7.10.1 (pg adapter, client generated on postinstall, lazy `db` proxy). Migration `phase1_identity_platform` is applied; RLS is on for all 9 tables, and anon/authenticated have no privileges (verified by SQL).
+  - Verified in the browser: /app redirects to /login; wrong login gives a generic error; the rate-limit row is written; signup validation (consent, breached password) works.
+  - **Blocked:** Supabase default SMTP refuses non-team addresses (`email_address_invalid`), so real signup needs Resend + a verified domain. Vercel connector `create_git_project` returns malformed responses, so the founder imports the project via the dashboard.
+  - `vercel.json` sets region sin1.
 - **[V] 2026-10-30: Phase 0 mostly done.**
   - Public repo https://github.com/NazimAli28/ai-resume-job-matcher (main). CI (lint, typecheck with `next typegen`, Vitest, build, `npm audit --omit=dev --audit-level=high`) is green.
   - GitHub security: secret scanning + push protection, Dependabot alerts/fixes + weekly updates, private vulnerability reporting, and a ruleset on main (no deletion, no force-push). Open Dependabot alerts: 0.
