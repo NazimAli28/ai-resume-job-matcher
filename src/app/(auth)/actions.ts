@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import type { z } from "zod";
+import { FEATURES } from "@/config/features";
 import { audit } from "@/server/audit";
 import { isBreachedPassword } from "@/server/auth/breached";
 import { recordSignupConsent } from "@/server/auth/consent";
@@ -17,9 +18,11 @@ export type FormState = { error?: string; fieldErrors?: Record<string, string>; 
 
 const fields = (e: z.ZodError) => Object.fromEntries(e.issues.map((i) => [String(i.path[0] ?? "form"), i.message]));
 const TOO_MANY = "Too many attempts. Please wait a few minutes and try again.";
+const EMAIL_OFF: FormState = { error: "Email sign-in is not available during the beta. Please continue with Google." };
 const BREACHED = "This password has appeared in a data breach. Please choose a different one.";
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
+  if (!FEATURES.EMAIL_PASSWORD_AUTH) return EMAIL_OFF;
   const parsed = signUpSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fieldErrors: fields(parsed.error) };
   const { email, password, name, marketing } = parsed.data;
@@ -53,6 +56,7 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
 }
 
 export async function signIn(_: FormState, form: FormData): Promise<FormState> {
+  if (!FEATURES.EMAIL_PASSWORD_AUTH) return EMAIL_OFF;
   const parsed = signInSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fieldErrors: fields(parsed.error) };
   const { email, password } = parsed.data;
@@ -86,6 +90,7 @@ export async function signInWithGoogle(form: FormData): Promise<void> {
 }
 
 export async function requestPasswordReset(_: FormState, form: FormData): Promise<FormState> {
+  if (!FEATURES.EMAIL_PASSWORD_AUTH) return EMAIL_OFF;
   const parsed = resetRequestSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fieldErrors: fields(parsed.error) };
   const ip = await clientIp();
@@ -104,6 +109,7 @@ export async function requestPasswordReset(_: FormState, form: FormData): Promis
 }
 
 export async function updatePassword(_: FormState, form: FormData): Promise<FormState> {
+  if (!FEATURES.EMAIL_PASSWORD_AUTH) return EMAIL_OFF;
   const parsed = newPasswordSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fieldErrors: fields(parsed.error) };
   const supabase = await supabaseServer();

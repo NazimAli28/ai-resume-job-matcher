@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ForgotForm } from "@/components/auth/forms";
+import { FEATURES } from "@/config/features";
 
 export const metadata: Metadata = { title: "Reset your password" };
 
 export default function ForgotPage() {
+  if (!FEATURES.EMAIL_PASSWORD_AUTH) redirect("/login");
   return (
     <div className="flex flex-col gap-6">
       <div>
