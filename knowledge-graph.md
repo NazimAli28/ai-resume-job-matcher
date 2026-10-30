@@ -5,6 +5,14 @@
 > Last updated: 2026-10-20
 
 ## Status
+- **[V] 2026-10-31: Phase 2 (profile + evidence bank) shipped; awaiting the founder's hands-on test.**
+  - Migration `phase2_profile` adds Profile, Skill, Experience, Education, Project, Certification and FactBankItem (with `skillName`, `source` FactSource), all with RLS deny-all (verified).
+  - `src/server/profile/{schemas,service}.ts`: every update/delete is `where {id,userId}`; per-user caps; CNIC rejected in all text; https-only URLs.
+  - Actions in `src/app/app/profile/actions.ts` (write limit 60/min/user).
+  - UI built by a Sonnet subagent: `src/app/app/{onboarding,profile}`, `src/components/profile-real/*` (~1,070 lines).
+  - Tests: 24 pass, including the cross-account authZ test (`service.authz.test.ts`; runs against the real DB locally, skipped in CI, cleans up after itself).
+  - CI green; live routes are gated (307 to login).
+  - **Not browser-tested by Claude:** the pane has no signed-in session and Claude must not use the founder's Google account.
 - **[V] 2026-10-31: Phase 1 live and verified end to end on https://airesumejobmatcher.vercel.app.**
   - The founder signed in with Google, passed the /consent step, and saw /app.
   - DB check: 1 User (verified, USER/FREE/beta); consents TERMS/PRIVACY at current versions, AGE_16_PLUS, MARKETING=false; IP stored as /24 only; AuditLog LOGIN method=google; 0 ErrorEvents.
