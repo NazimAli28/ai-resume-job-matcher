@@ -27,6 +27,9 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
               <Link href="/app/jobs" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Jobs
               </Link>
+              <Link href="/app/applications" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
+                Tracker
+              </Link>
               <Link href="/app/profile" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Profile
               </Link>
