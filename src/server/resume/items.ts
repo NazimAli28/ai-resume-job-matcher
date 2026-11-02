@@ -13,6 +13,8 @@ export interface Entry {
 /** Lines -> entries: strip bullet glyphs and join wrapped continuation lines onto the previous entry. */
 export function toEntries(lines: Line[]): Entry[] {
   const out: Entry[] = [];
+  const fullWidth = Math.max(0, ...lines.map((l) => l.right ?? 0));
+  let prevLine: Line | undefined;
   for (const l of lines) {
     const raw = l.text.trim();
     if (!raw) continue;
@@ -21,8 +23,11 @@ export function toEntries(lines: Line[]): Entry[] {
     if (!text) continue;
     const bullet = glyph || l.listItem === true;
     const prev = out[out.length - 1];
-    if (!bullet && prev && /^[a-z(]/.test(text) && (prev.bullet || prev.text.length > 60) && !findDateRange(text)) {
-      prev.text = `${prev.text} ${text}`;
+    // A bullet that ran to the right margin without finishing its sentence continues on the next line.
+    const ranToMargin = !!prevLine?.right && prevLine.right >= fullWidth - 0.03 && !!prev?.bullet && !/[.!?]$/.test(prev.text);
+    prevLine = l;
+    if (!bullet && prev && !findDateRange(text) && (ranToMargin || (/^[a-z(]/.test(text) && (prev.bullet || prev.text.length > 60)))) {
+      prev.text = /\p{L}-$/u.test(prev.text) && /^[a-z]/.test(text) ? `${prev.text}${text}` : `${prev.text} ${text}`;
       continue;
     }
     out.push({ text, bullet });
@@ -68,6 +73,8 @@ function parseHeader(texts: string[]): { title: string; employer: string; locati
       (isLocationSegment(s) ? locs : segs).push(s);
     }
   }
+  // "Acme, Web Developer | Karachi": the location was split off, the comma pair still needs splitting.
+  if (segs.length === 1 && segs[0]?.includes(",")) segs.splice(0, 1, ...segs[0].split(/\s*,\s*/).filter(Boolean));
   let title = "";
   let employer = "";
   if (segs.length === 1 && segs[0]) {
@@ -233,21 +240,25 @@ function dedupe(list: string[], maxLen: number, maxWords: number): string[] {
   return out;
 }
 
-const LABEL_RE = /^[A-Za-z][A-Za-z &/+#.]{1,30}?\s*:\s*(?=\S)/;
+/** Category labels: "Languages: Python", "Languages—Python", "Languages - Python". */
+const LABEL_RE = /^[A-Za-z][A-Za-z &/+#.]{1,30}?(?:\s*[:—–]\s*|\s+-\s+)(?=\S)/;
 
 export function parseSkills(lines: Line[]): string[] {
   const parts = lines.flatMap((l) => {
     const t = l.text.replace(BULLET_PREFIX_RE, "");
     const m = LABEL_RE.exec(t);
-    return splitTopLevel(m && m[0].split(" ").length <= 5 ? t.slice(m[0].length) : t);
+    const rest = m && m[0].trim().split(/\s+/).length <= 5 ? t.slice(m[0].length) : t;
+    return splitTopLevel(rest.replace(/\s+[—–]\s+/g, ", "));
   });
-  return dedupe(parts, 50, 8);
+  // A long aside must not lose the skill: "AI-assisted development (… long note …)".
+  return dedupe(parts.map((s) => (s.length > 50 ? s.replace(/\s*\([^)]*\)/g, "") : s)), 50, 8);
 }
 
 export function parseLanguages(lines: Line[]): string[] {
   const parts = lines.flatMap((l) => {
     const t = l.text.replace(BULLET_PREFIX_RE, "").replace(/^languages?\s*:\s*/i, "");
-    return splitTopLevel(t);
+    // Several on one line: "Urdu — Native English — Proficient".
+    return t.split(/\s+(?=\p{Lu}\p{L}+\s*[—–])/u).flatMap(splitTopLevel).map((s) => s.replace(/\s*[—–]\s*/g, " – "));
   });
   return dedupe(parts, 60, 8);
 }

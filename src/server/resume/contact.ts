@@ -67,7 +67,7 @@ export function findProfiles(text: string): Basics["profiles"] {
       ? "LINKEDIN"
       : /github\.com/i.test(url)
         ? "GITHUB"
-        : /behance|dribbble|medium\.com|portfolio|\.dev\b|\.me\b/i.test(url)
+        : /behance|dribbble|medium\.com|portfolio|github\.io|vercel\.app|netlify\.app|\.dev\b|\.me\b/i.test(url)
           ? "PORTFOLIO"
           : "OTHER";
     out.push({ network, url });
@@ -90,7 +90,7 @@ export function isLocationSegment(seg: string): boolean {
 const SEG_SPLIT = /\s*[|•·●▪◦]\s*|\s{3,}|\s+[–—]\s+/;
 
 function isContactSegment(seg: string): boolean {
-  return /@/.test(seg) || findPhones(seg).length > 0 || /(?:https?:\/\/|www\.|linkedin\.com|github\.com)/i.test(seg);
+  return /@/.test(seg) || findPhones(seg).length > 0 || /(?:https?:\/\/|www\.|linkedin\.com|github\.com|github\.io|vercel\.app|netlify\.app)/i.test(seg);
 }
 
 /** Parse the contact block (lines before the first heading) with whole-document fallbacks. */
