@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "../db";
 import { env } from "../env";
+import { captureError } from "../observability/errors";
 import { createAnthropicProvider } from "./provider/anthropic";
 import { devFakeProvider } from "./provider/dev-fake";
 import { AiInvalidOutputError, AiRefusedError, type AiProvider, type StructuredRequest, type StructuredResult } from "./provider/types";
@@ -9,7 +10,7 @@ import { AiInvalidOutputError, AiRefusedError, type AiProvider, type StructuredR
 export const SPEND = { userDaily: 0.5, userMonthly: 1.5, globalDaily: 10 } as const;
 
 export class AiUnavailableError extends Error {
-  constructor(public reason: "NOT_CONFIGURED" | "KILL_SWITCH" | "USER_BUDGET" | "GLOBAL_BUDGET" | "FAILED") {
+  constructor(public reason: "NOT_CONFIGURED" | "KILL_SWITCH" | "USER_BUDGET" | "GLOBAL_BUDGET" | "FAILED" | "PROVIDER") {
     super(`ai_unavailable:${reason}`);
   }
 }
@@ -83,7 +84,10 @@ export async function runAiTask<T>(userId: string, req: StructuredRequest<T>, pr
       const invalid = e instanceof AiInvalidOutputError;
       await log({ ...(invalid ? { usage: e.usage, costUsd: e.costUsd } : {}), status: invalid ? "INVALID_OUTPUT" : "ERROR" });
       if (invalid && attempt < 2) continue;
-      throw invalid ? new AiUnavailableError("FAILED") : e;
+      if (invalid) throw new AiUnavailableError("FAILED");
+      // Out of credit, a bad key, an outage: the log gets the reason, the user gets a plain message.
+      await captureError(e, { source: "ACTION", route: `ai:${req.task}`, userId });
+      throw new AiUnavailableError("PROVIDER");
     }
   }
 }

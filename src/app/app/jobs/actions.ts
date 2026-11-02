@@ -18,6 +18,7 @@ const AI_MESSAGE: Record<AiUnavailableError["reason"], string> = {
   USER_BUDGET: "You've reached this period's limit for AI features. It resets soon.",
   GLOBAL_BUDGET: "We've reached today's limit for AI features. Please try again tomorrow.",
   FAILED: "We couldn't read that job post. Please try again.",
+  PROVIDER: "Reading job posts is unavailable right now. Your post wasn't saved. Please try again later.",
 };
 
 export type CreateJobResult = { ok: true; jobId: string } | { ok: false; duplicate: { id: string; title: string; createdAt: string } } | Fail;

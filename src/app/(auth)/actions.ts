@@ -42,6 +42,7 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
     if (error) {
       if (error.status === 429) return { error: TOO_MANY };
       if (error.code === "email_address_invalid") return { fieldErrors: { email: "Use an email address you can receive mail at." } };
+      if (error.code === "email_address_not_authorized") return { error: "Email sign-up isn't open to everyone yet. Please continue with Google." };
       return { error: "We couldn't create the account. Check the details and try again." };
     }
     // An existing email comes back with no identities. We answer exactly as for a new account (no enumeration).
