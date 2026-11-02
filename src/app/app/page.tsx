@@ -68,11 +68,14 @@ export default async function AppHome({ searchParams }: PageProps<"/app">) {
         <div className="relative flex flex-col gap-3">
           <h1 className="font-display text-[32px] font-bold leading-tight">{first ? `Welcome, ${first}` : "Welcome"}</h1>
           <p className="max-w-2xl text-muted">
-            Your account is ready. We&apos;re switching the app on feature by feature during the beta: resume upload and job
-            matching come next. Until then, the demo shows every screen with sample data.
+            Upload your resume, then paste a job to see what you already show and what&apos;s missing. We&apos;re switching on more
+            of the app during the beta, and the demo shows the rest with sample data.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
-            <ButtonLink href="/demo" variant="primary" className="glow">
+            <ButtonLink href="/app/jobs/new" variant="primary" className="glow">
+              Match a job
+            </ButtonLink>
+            <ButtonLink href="/demo" variant="secondary">
               <PlayCircle className="size-4" aria-hidden /> Explore the demo
             </ButtonLink>
           </div>

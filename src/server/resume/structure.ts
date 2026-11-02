@@ -60,7 +60,8 @@ export function splitSections(extraction: Extraction): Section[] {
     const core = coreOf(l.text);
     if (core.length < 3) return undefined;
     const inline = INLINE_LABEL_RE.exec(core);
-    if (inline?.[1] && inline[2] && inline[1].split(" ").length <= 4) {
+    // Inside Skills, "Languages: Python, PHP" is a category of skills, not a new section.
+    if (inline?.[1] && inline[2] && inline[1].split(" ").length <= 4 && current !== "skills") {
       const kind = lookupHeading(inline[1]);
       if (kind) return { kind, heading: inline[1].trim(), standardHeading: true, remainder: inline[2] };
     }

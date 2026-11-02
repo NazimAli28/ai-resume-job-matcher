@@ -1,10 +1,12 @@
 import "server-only";
 import type { User as AuthUser } from "@supabase/supabase-js";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { LEGAL } from "@/config/legal";
 import type { User } from "@/generated/prisma/client";
 import { db } from "../db";
+import { DEV_LOGIN_COOKIE, DEV_USER_ID, isDevLoginAllowed } from "./dev-login";
 import { supabaseServer } from "../supabase/server";
 
 /** Mirror the Supabase auth user into our User table (id = auth id). Safe to call on every sign-in. */
@@ -32,6 +34,11 @@ export async function hasCurrentConsent(userId: string): Promise<boolean> {
 
 /** Signed-in user id from the verified JWT, or null. */
 export const currentUserId = cache(async (): Promise<string | null> => {
+  if (process.env.NODE_ENV === "development") {
+    const [jar, h] = await Promise.all([cookies(), headers()]);
+    const hostname = (h.get("host") ?? "").split(":")[0] ?? "";
+    if (jar.get(DEV_LOGIN_COOKIE)?.value === "1" && isDevLoginAllowed(hostname)) return DEV_USER_ID;
+  }
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getClaims();
   return (data?.claims?.sub as string | undefined) ?? null;

@@ -81,7 +81,7 @@ export default async function ResumeReportPage({ params }: { params: Promise<{ i
       )}
 
       <p className="rounded-xl bg-sunken px-4 py-3 text-sm text-muted">
-        AI suggestions to improve wording arrive in the next update. These checks are calculated by code.
+        These checks are calculated by code. AI suggestions to improve wording arrive in a later update.
       </p>
     </div>
   );

@@ -138,6 +138,7 @@ model User {
   profile  Profile?
   uploads  ResumeUpload[]
   versions ResumeVersion[]
+  jobs     Job[]
 
   @@index([lastSeenAt])
   @@index([deletedAt])
@@ -427,6 +428,7 @@ model ResumeVersion {
   parent        ResumeVersion?      @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
   children      ResumeVersion[]     @relation("Lineage")
   analyses      ResumeAnalysis[]
+  matches       JobMatch[]
 
   @@index([userId, createdAt])
 }
@@ -445,4 +447,143 @@ model ResumeAnalysis {
   resumeVersion   ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
 
   @@index([userId, resumeVersionId])
+}
+
+// ───────────────────────────── Jobs + Match (Phase 4) ─────────────────────────────
+enum JobSource {
+  LINKEDIN
+  ROZEE_PK
+  INDEED
+  MUSTAKBIL
+  COMPANY_SITE
+  REFERRAL
+  GOVT_PORTAL
+  JOB_FAIR
+  RECRUITER
+  SOCIAL_MEDIA
+  OTHER
+}
+
+enum RequirementType {
+  MUST_HAVE
+  NICE_TO_HAVE
+}
+
+enum RequirementKind {
+  SKILL
+  TOOL
+  TITLE
+  YEARS
+  EDUCATION
+  CERT
+  LOCATION
+  WORK_AUTH
+  LANGUAGE
+  SOFT
+  OTHER
+}
+
+enum MatchOverride {
+  CONFIRM
+  REJECT
+  LEARNING
+  ADD_EVIDENCE
+}
+
+enum AiRequestStatus {
+  OK
+  INVALID_OUTPUT
+  REFUSED
+  ERROR
+}
+
+/// A pasted job post. rawText is an immutable snapshot; the URL is stored as a link and never fetched.
+model Job {
+  id               String           @id @default(uuid(7))
+  userId           String
+  title            String
+  company          String?
+  location         String?
+  workMode         String?
+  seniorityHint    String?
+  url              String?
+  source           JobSource        @default(OTHER)
+  sourceDetail     String?
+  rawText          String
+  textHash         String
+  responsibilities String[]
+  /// The post contained text addressed to an AI. Treated as data, shown to the user as a notice.
+  injectionSuspect Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requirements     JobRequirement[]
+  matches          JobMatch[]
+
+  @@index([userId, createdAt])
+  @@index([userId, textHash])
+}
+
+model JobRequirement {
+  id           String          @id @default(uuid(7))
+  userId       String
+  jobId        String
+  text         String
+  /// Verbatim from the post; null only when the user added the requirement.
+  quote        String?
+  kind         RequirementKind
+  priority     RequirementType
+  /// A knockout: missing it caps the score.
+  hard         Boolean         @default(false)
+  /// Short term to look for ("Docker"); normalized against the skill dictionary in code.
+  skillTerm    String?
+  years        Int?
+  degreeLevel  String?
+  userEdited   Boolean         @default(false)
+  override     MatchOverride?
+  overrideAt   DateTime?
+  sortOrder    Int             @default(0)
+  job          Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([jobId, sortOrder])
+}
+
+/// One computed result; the last 5 per job and resume are kept to show the change. items is the per-requirement snapshot.
+model JobMatch {
+  id              String        @id @default(uuid(7))
+  userId          String
+  jobId           String
+  resumeVersionId String
+  score           Int
+  factors         Json
+  items           Json
+  cap             Int?
+  lowConfidence   Boolean       @default(false)
+  engineVersion   String
+  inputsHash      String
+  createdAt       DateTime      @default(now())
+  job             Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion   ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, jobId, createdAt])
+}
+
+/// Metadata for every AI call. Never prompt or response text. Backs the spend guards.
+model AiRequest {
+  id            String          @id @default(uuid(7))
+  userId        String?
+  task          String
+  promptVersion String
+  model         String
+  inTok         Int             @default(0)
+  outTok        Int             @default(0)
+  cachedTok     Int             @default(0)
+  costUsd       Float           @default(0)
+  latencyMs     Int             @default(0)
+  status        AiRequestStatus
+  createdAt     DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }

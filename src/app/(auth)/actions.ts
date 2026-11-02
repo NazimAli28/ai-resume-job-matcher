@@ -1,11 +1,13 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
 import { FEATURES } from "@/config/features";
 import { audit } from "@/server/audit";
 import { isBreachedPassword } from "@/server/auth/breached";
 import { recordSignupConsent } from "@/server/auth/consent";
+import { DEV_LOGIN_COOKIE } from "@/server/auth/dev-login";
 import { newPasswordSchema, resetRequestSchema, safeNext, signInSchema, signUpSchema } from "@/server/auth/schemas";
 import { syncUser } from "@/server/auth/user";
 import { env } from "@/server/env";
@@ -136,6 +138,7 @@ export async function acceptCurrentTerms(form: FormData): Promise<void> {
 }
 
 export async function signOut(form: FormData): Promise<void> {
+  if (process.env.NODE_ENV === "development") (await cookies()).delete(DEV_LOGIN_COOKIE);
   const everywhere = form.get("scope") === "global";
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getClaims();

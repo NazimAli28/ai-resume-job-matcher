@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { DEV_LOGIN_COOKIE, isDevLoginAllowed } from "@/server/auth/dev-login";
 
 /**
  * Runs before matching requests: refreshes the Supabase session cookie and keeps
@@ -25,7 +26,8 @@ export async function proxy(request: NextRequest) {
 
   // getClaims verifies the JWT; do not trust getSession() on the server.
   const { data } = await supabase.auth.getClaims();
-  const signedIn = Boolean(data?.claims?.sub);
+  const devLogin = request.cookies.get(DEV_LOGIN_COOKIE)?.value === "1" && isDevLoginAllowed(request.nextUrl.hostname);
+  const signedIn = Boolean(data?.claims?.sub) || devLogin;
   const path = request.nextUrl.pathname;
 
   if (!signedIn && path.startsWith("/app")) {

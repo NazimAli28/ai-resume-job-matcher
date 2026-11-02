@@ -13,15 +13,19 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
   return (
     <div className="ambient flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 px-3 pt-3">
-        <div className="card mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-2 backdrop-blur-xl [background:color-mix(in_oklab,var(--surface)_82%,transparent)]">
-          <div className="flex min-w-0 items-center gap-1 sm:gap-4">
+        <div className="card mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2 backdrop-blur-xl [background:color-mix(in_oklab,var(--surface)_82%,transparent)]">
+          {/* On phones the links take their own row, so four of them never collide with Sign out. */}
+          <div className="contents sm:flex sm:min-w-0 sm:items-center sm:gap-4">
             <Logo compact />
-            <nav aria-label="Main" className="flex items-center gap-1">
+            <nav aria-label="Main" className="order-last flex basis-full items-center gap-1 sm:order-none sm:basis-auto">
               <Link href="/app" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Home
               </Link>
               <Link href="/app/resumes" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Resumes
+              </Link>
+              <Link href="/app/jobs" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
+                Jobs
               </Link>
               <Link href="/app/profile" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
                 Profile
@@ -31,7 +35,7 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
           <div className="flex items-center gap-2">
             <span className="hidden max-w-[16rem] truncate text-sm text-muted sm:block">{user.email}</span>
             <form action={signOut}>
-              <button type="submit" className="inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-semibold hover:bg-sunken">
+              <button type="submit" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-semibold hover:bg-sunken">
                 Sign out
               </button>
             </form>

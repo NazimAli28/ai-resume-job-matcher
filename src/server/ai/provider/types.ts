@@ -22,9 +22,24 @@ export interface StructuredRequest<T> {
   cacheablePrefix: string;
   input: string; // already PII-masked and wrapped as untrusted data
   schema: z.ZodType<T>;
-  temperature: number;
+  /** How hard the model thinks. Current Claude models take this instead of a temperature. */
+  effort?: "low" | "medium" | "high";
   maxTokens: number;
   signal?: AbortSignal;
+}
+
+type Usage = { inTok: number; outTok: number; cachedTok: number };
+
+/** The model answered but not in a usable shape. Tokens were still spent, so usage travels with it. */
+export class AiInvalidOutputError extends Error {
+  constructor(public usage: Usage = { inTok: 0, outTok: 0, cachedTok: 0 }, public costUsd = 0) {
+    super("ai_invalid_output");
+  }
+}
+export class AiRefusedError extends Error {
+  constructor(public usage: Usage = { inTok: 0, outTok: 0, cachedTok: 0 }, public costUsd = 0) {
+    super("ai_refused");
+  }
 }
 
 export interface StructuredResult<T> {
