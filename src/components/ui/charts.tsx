@@ -127,17 +127,20 @@ export function BarChart({
   label,
   height = 160,
   highlightLast = true,
+  labelEvery = 1,
   className,
 }: {
   data: Point[];
   label: string;
   height?: number;
   highlightLast?: boolean;
+  /** Label every nth bar, so long series still fit on a phone. */
+  labelEvery?: number;
   className?: string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const max = Math.max(1, ...data.map((d) => d.value));
-  const ticks = [0, Math.ceil(max / 2), max];
+  const ticks = [...new Set([0, Math.ceil(max / 2), max])];
   return (
     <figure className={cn("flex flex-col gap-2", className)}>
       <div className="relative flex gap-2" style={{ height }}>
@@ -153,7 +156,7 @@ export function BarChart({
           {data.map((d, i) => {
             const isLast = highlightLast && i === data.length - 1;
             return (
-              <div key={d.label} role="listitem" className="relative flex h-full flex-1 flex-col justify-end" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
+              <div key={d.label} role="listitem" className="relative flex h-full min-w-0 flex-1 flex-col justify-end" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
                 <button
                   type="button"
                   aria-label={`${d.label}: ${d.value}`}
@@ -179,9 +182,9 @@ export function BarChart({
         </div>
       </div>
       <div className="flex gap-[6px] pl-7 text-[11px] text-muted" aria-hidden>
-        {data.map((d) => (
-          <span key={d.label} className="flex-1 truncate text-center">
-            {d.label}
+        {data.map((d, i) => (
+          <span key={d.label} className="min-w-0 flex-1 whitespace-nowrap text-center">
+            {i % labelEvery === 0 ? d.label : ""}
           </span>
         ))}
       </div>

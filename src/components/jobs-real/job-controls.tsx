@@ -92,7 +92,7 @@ export function DeleteJob({ jobId }: { jobId: string }) {
     <div className="flex flex-col gap-2">
       {confirming ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm">Delete this job and its results?</span>
+          <span className="text-sm">Delete this job and its results? Applications in your tracker keep their own copy.</span>
           <Button variant="danger" size="sm" disabled={busy} onClick={remove}>Delete</Button>
           <Button variant="ghost" size="sm" disabled={busy} onClick={() => setConfirming(false)}>Keep it</Button>
         </div>

@@ -8,6 +8,7 @@ import { SectionCard } from "@/components/profile-real/section-card";
 import { ButtonLink } from "@/components/ui/button";
 import { RingScore } from "@/components/ui/charts";
 import { requireUser } from "@/server/auth/user";
+import { db } from "@/server/db";
 import { band, nextSteps, summaryLine, type Factor, type MatchClass, type MatchItem, type MatchResult } from "@/server/match/engine";
 import { getJobView } from "@/server/match/service";
 
@@ -28,6 +29,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const view = await getJobView(user.id, id, typeof resume === "string" && /^[0-9a-f-]{36}$/i.test(resume) ? resume : undefined);
   if (!view) notFound();
   const { job, versions, match, previous, resumeVersionId } = view;
+  const tracked = await db.application.findFirst({ where: { userId: user.id, jobId: job.id }, select: { id: true } });
 
   const items = (match?.items ?? []) as unknown as MatchItem[];
   const factors = (match?.factors ?? []) as unknown as Factor[];
@@ -51,7 +53,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               </a>
             )}
           </div>
-          <DeleteJob jobId={job.id} />
+          <div className="flex flex-wrap items-start gap-2">
+            {tracked ? (
+              <ButtonLink href={`/app/applications/${tracked.id}`} size="sm">Open in tracker</ButtonLink>
+            ) : (
+              <ButtonLink href={`/app/applications/new?job=${job.id}${resumeVersionId ? `&resume=${resumeVersionId}` : ""}`} size="sm" variant="primary">Track this application</ButtonLink>
+            )}
+            <DeleteJob jobId={job.id} />
+          </div>
         </div>
       </div>
 

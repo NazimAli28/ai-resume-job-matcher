@@ -139,6 +139,7 @@ model User {
   uploads  ResumeUpload[]
   versions ResumeVersion[]
   jobs     Job[]
+  applications Application[]
 
   @@index([lastSeenAt])
   @@index([deletedAt])
@@ -429,6 +430,7 @@ model ResumeVersion {
   children      ResumeVersion[]     @relation("Lineage")
   analyses      ResumeAnalysis[]
   matches       JobMatch[]
+  applications  Application[]
 
   @@index([userId, createdAt])
 }
@@ -519,6 +521,7 @@ model Job {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   requirements     JobRequirement[]
   matches          JobMatch[]
+  applications     Application[]
 
   @@index([userId, createdAt])
   @@index([userId, textHash])
@@ -567,6 +570,135 @@ model JobMatch {
   resumeVersion   ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
 
   @@index([userId, jobId, createdAt])
+}
+
+// ───────────────────────────── Tracker (Phase 6) ─────────────────────────────
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  SCREENING
+  ASSESSMENT
+  INTERVIEWING
+  OFFER
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  GHOSTED
+}
+
+enum RoundType {
+  HR
+  TECHNICAL
+  FINAL
+  PANEL
+  OTHER
+}
+
+enum RoundOutcome {
+  PENDING
+  PASSED
+  FAILED
+  UNKNOWN
+}
+
+enum ContactRole {
+  RECRUITER
+  HIRING_MANAGER
+  REFERRER
+  INTERVIEWER
+  OTHER
+}
+
+/// One job the user is pursuing. Company, title and post text are copied from the Job, so the record survives
+/// deleting the job or adding it by hand. resumeVersionId is the exact version sent, and linking it locks that version.
+model Application {
+  id              String            @id @default(uuid(7))
+  userId          String
+  jobId           String?
+  resumeVersionId String?
+  company         String
+  title           String
+  location        String?
+  url             String?
+  source          JobSource         @default(OTHER)
+  sourceDetail    String?
+  jobText         String?
+  /// JobMatch score when the job was linked (TRK-006). A snapshot: later changes to the match don't alter it.
+  matchScore      Int?
+  status          ApplicationStatus @default(SAVED)
+  appliedAt       DateTime?
+  lastActivityAt  DateTime          @default(now())
+  nextActionAt    DateTime?         @db.Date
+  nextActionNote  String?
+  deadline        DateTime?         @db.Date
+  salaryExpected  Int?
+  currency        String?           @default("PKR")
+  priority        Int               @default(2)
+  notes           String?
+  /// A follow-up or ghosting suggestion stays hidden until this time (TRK-044).
+  nudgeSnoozedUntil DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job             Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  /// NoAction rather than Restrict: Postgres checks it at the end of the statement, so deleting an account still cascades.
+  resumeVersion   ResumeVersion?    @relation(fields: [resumeVersionId], references: [id], onDelete: NoAction)
+  history         ApplicationStatusHistory[]
+  rounds          InterviewRound[]
+  contacts        Contact[]
+
+  @@index([userId, status])
+  @@index([userId, nextActionAt])
+  @@index([userId, createdAt])
+  @@index([resumeVersionId])
+  @@index([jobId])
+}
+
+/// Every status change. The dashboard's funnel and time metrics are computed from these rows.
+model ApplicationStatusHistory {
+  id            String             @id @default(uuid(7))
+  userId        String
+  applicationId String
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  changedAt     DateTime           @default(now())
+  note          String?
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, applicationId, changedAt])
+  @@index([userId, toStatus, changedAt])
+}
+
+model InterviewRound {
+  id            String       @id @default(uuid(7))
+  userId        String
+  applicationId String
+  type          RoundType
+  scheduledAt   DateTime?
+  outcome       RoundOutcome @default(PENDING)
+  notes         String?
+  createdAt     DateTime     @default(now())
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduledAt])
+  @@index([applicationId])
+}
+
+/// A person at the company. Stays in the tracker and is never sent to the AI.
+model Contact {
+  id            String      @id @default(uuid(7))
+  userId        String
+  applicationId String
+  name          String
+  role          ContactRole @default(RECRUITER)
+  email         String?
+  phone         String?
+  linkedinUrl   String?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId, applicationId])
 }
 
 /// Metadata for every AI call. Never prompt or response text. Backs the spend guards.

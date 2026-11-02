@@ -167,12 +167,20 @@ export async function getVersion(userId: string, id: string) {
 
 /** Delete a version; if it was the last one using its upload, delete the stored file too. */
 export async function deleteVersion(userId: string, id: string) {
-  const v = await db.resumeVersion.findFirst({ where: { id, userId }, include: { upload: true } });
+  const v = await db.resumeVersion.findFirst({ where: { id, userId }, select: { _count: { select: { applications: true } } } });
   if (!v) throw new NotFoundError();
-  if (v.lockedAt) {
+  // Applications keep a record of exactly what was sent, so it goes only when the last of them does.
+  if (v._count.applications > 0) {
     await db.resumeVersion.update({ where: { id }, data: { state: "ARCHIVED", deletedAt: new Date() } });
     return;
   }
+  await purgeVersion(userId, id);
+}
+
+/** Removes a version for good. Callers make sure no application still uses it. */
+export async function purgeVersion(userId: string, id: string) {
+  const v = await db.resumeVersion.findFirst({ where: { id, userId }, include: { upload: true } });
+  if (!v) throw new NotFoundError();
   await db.resumeVersion.delete({ where: { id } });
   if (v.upload) {
     const others = await db.resumeVersion.count({ where: { uploadId: v.upload.id } });
