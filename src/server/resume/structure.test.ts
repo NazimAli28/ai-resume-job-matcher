@@ -106,3 +106,18 @@ describe("educationLevel", () => {
     ["PhD Computer Science", "DOCTORATE"],
   ])("%s -> %s", (text, level) => expect(educationLevel(text)).toBe(level));
 });
+
+describe("skills with category labels", () => {
+  it("keeps 'Languages: Python' inside Skills instead of starting a new section", () => {
+    const x = makeExtraction(linesFrom(`Ayesha Khan
+ayesha@example.com
+SKILLS
+Languages: Python, PHP, SQL
+Tools: Git, WordPress
+LANGUAGES
+Urdu - Native`));
+    const d = buildResumeDoc(x);
+    expect(d.skills).toEqual(["Python", "PHP", "SQL", "Git", "WordPress"]);
+    expect(d.languages).toEqual(["Urdu - Native"]);
+  });
+});

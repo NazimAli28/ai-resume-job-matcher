@@ -6,7 +6,7 @@
 - **Product:** AI Job Application Copilot (working title).
 - **What it does:** resume + job description → explainable fit scores, ATS-safe and recruiter-readable improvements (never fabricated), cover letters, configurable AI mock interviews with scored reports and model answers, and an application tracker that links the exact resume version and job source.
 - **Goal:** portfolio-quality build first, then launch as a SaaS. Pakistan first, global later. English only.
-- **Status:** planning complete (PRD draft). No code yet. See [knowledge-graph.md § Status](knowledge-graph.md#status).
+- **Status:** live beta in progress, built phase by phase. See [knowledge-graph.md § Status](knowledge-graph.md#status).
 
 ## Architecture & Stack (proposed, see [04](docs/prd/04-architecture.md))
 - **Founder rule: at most 5 platforms**: GitHub, Vercel, Supabase, Anthropic, Resend. Don't add another service without the founder's approval.
@@ -36,7 +36,8 @@
 - Report real test output. Never claim a pass without running the tests.
 
 ## Environment
-- Windows 11. PowerShell 5.1 is primary; Git Bash is available. Not a git repo yet (`git init` happens in Phase 0).
+- Windows 11. PowerShell 5.1 is primary; Git Bash is available.
+- Local test sign-in: `npm run dev`, then `http://localhost:3000/dev-login` (localhost only, never in production).
 
 ## Session Protocol (every session)
 1. Read this file → the relevant knowledge-graph.md sections → only the PRD section the task needs.
