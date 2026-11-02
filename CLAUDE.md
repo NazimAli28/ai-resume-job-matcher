@@ -37,6 +37,7 @@
 
 ## Environment
 - Windows 11. PowerShell 5.1 is primary; Git Bash is available.
+- Never run `prisma migrate dev` or `migrate reset`: dev and production share one database. New migrations: `migrate diff`, then `migrate deploy` (steps in knowledge-graph.md).
 - Local test sign-in: `npm run dev`, then `http://localhost:3000/dev-login` (localhost only, never in production).
 
 ## Session Protocol (every session)
