@@ -76,7 +76,7 @@ const IRREGULAR_PAST: Record<string, string> = {
   speak: "spoke", draw: "drew", choose: "chose", rebuild: "rebuilt", overhaul: "overhauled", set: "set", cut: "cut",
   put: "put", spearhead: "spearheaded", shrink: "shrank", slash: "slashed", forecast: "forecast", broadcast: "broadcast",
 };
-const DOUBLE_FINAL = new Set(["plan", "ship", "map", "drop", "program", "submit", "refer", "stop", "equip", "scan", "model", "label", "travel"]);
+const DOUBLE_FINAL = new Set(["plan", "ship", "map", "drop", "program", "submit", "refer", "stop", "equip", "scan", "model", "label", "travel", "debug"]);
 
 // Base forms, en-US with en-GB variants listed explicitly.
 const VERB_BASES = (
@@ -94,7 +94,8 @@ const VERB_BASES = (
   "secure select serve simplify solve source spearhead standardize standardise streamline strengthen submit supervise " +
   "support sustain synthesize teach test track train transform translate troubleshoot upgrade utilize utilise validate " +
   "verify visualize visualise write secure win earn exceed outperform operationalize digitize digitise cut " +
-  "decrease grow resolve rewrite scale ship spin triage unify volunteer represent organise attend"
+  "decrease grow resolve rewrite scale ship spin triage unify volunteer represent organise attend " +
+  "own protect enforce apply adopt add fix prepare repair restore tune debug"
 ).split(/\s+/);
 
 export function pastForm(base: string): string {
@@ -186,29 +187,24 @@ export const SPELLING_PAIRS = SPELLING_STEMS.map(([us, uk, suf]) => {
   };
 });
 
-/** Acronym <-> spelled-out pairs (R7). SQL is acronym-only, so it is intentionally absent. */
+/**
+ * Acronym <-> spelled-out pairs (R7). Only terms a job post may plausibly use in either form:
+ * universal ones (SQL, API, AWS, UI, UX, HR, QA) would read as silly advice, so they are absent.
+ */
 export const ACRONYM_PAIRS: { acronym: string; full: string }[] = [
   { acronym: "SEO", full: "Search Engine Optimization" },
   { acronym: "CRM", full: "Customer Relationship Management" },
   { acronym: "ERP", full: "Enterprise Resource Planning" },
   { acronym: "KPI", full: "Key Performance Indicator" },
   { acronym: "ROI", full: "Return on Investment" },
-  { acronym: "API", full: "Application Programming Interface" },
   { acronym: "CMS", full: "Content Management System" },
   { acronym: "PPC", full: "Pay-Per-Click" },
-  { acronym: "SaaS", full: "Software as a Service" },
-  { acronym: "QA", full: "Quality Assurance" },
-  { acronym: "HR", full: "Human Resources" },
-  { acronym: "AWS", full: "Amazon Web Services" },
   { acronym: "NLP", full: "Natural Language Processing" },
   { acronym: "SDLC", full: "Software Development Life Cycle" },
   { acronym: "OOP", full: "Object-Oriented Programming" },
   { acronym: "ETL", full: "Extract, Transform, Load" },
   { acronym: "MIS", full: "Management Information System" },
   { acronym: "SEM", full: "Search Engine Marketing" },
-  { acronym: "B2B", full: "Business to Business" },
-  { acronym: "UX", full: "User Experience" },
-  { acronym: "UI", full: "User Interface" },
   { acronym: "GAAP", full: "Generally Accepted Accounting Principles" },
 ];
 

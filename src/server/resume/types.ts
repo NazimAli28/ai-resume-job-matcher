@@ -13,6 +13,8 @@ export interface Line {
   top?: number;
   /** PDF only: left edge as a fraction of page width 0–1. */
   left?: number;
+  /** PDF only: right edge as a fraction of page width 0–1. */
+  right?: number;
   fontSize?: number;
   bold?: boolean;
   band: Band;

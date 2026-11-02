@@ -8,7 +8,8 @@ import {
   verbForm,
 } from "../lexicon";
 import { BULLET_PREFIX_RE } from "../patterns";
-import type { Extraction, Finding, ResumeDoc, WorkItem } from "../types";
+import { splitSections } from "../structure";
+import type { Extraction, Finding, ResumeDoc, SectionKind, WorkItem } from "../types";
 import { finding, quote, type AnalyzeOpts } from "./shared";
 
 const R = "readability" as const;
@@ -58,13 +59,21 @@ function r1(x: Extraction, doc: ResumeDoc): { sub: number; findings: Finding[] }
 function r2r3(doc: ResumeDoc): { r2: number; r3: number; findings: Finding[] } {
   const bullets = allBullets(doc);
   if (bullets.length === 0) return { r2: 0, r3: 0, findings: [] };
-  const failing = bullets.filter((b) => !(verbForm(b.text.split(/\s+/)[0] ?? "") !== "none" && b.text.length <= 220));
-  const r2 = (bullets.length - failing.length) / bullets.length;
+  const noVerb = bullets.filter((b) => verbForm(b.text.split(/\s+/)[0] ?? "") === "none");
+  const tooLong = bullets.filter((b) => b.text.length > 220);
+  const failing = new Set([...noVerb, ...tooLong]);
+  const r2 = (bullets.length - failing.size) / bullets.length;
   const share = bullets.filter((b) => b.hasMetric).length / bullets.length;
   const findings: Finding[] = [];
   if (r2 < 0.8) {
-    findings.push(finding(R, "R2", "TIP", "Bullets could start stronger",
-      "Start bullets with a strong verb and keep them to two lines.", failing.slice(0, 3).map((b) => quote(b.text))));
+    if (noVerb.length) {
+      findings.push(finding(R, "R2", "TIP", "Bullets could start stronger",
+        "Start each bullet with a strong verb, like 'Built' or 'Reduced'.", noVerb.slice(0, 3).map((b) => quote(b.text))));
+    }
+    if (tooLong.length) {
+      findings.push(finding(R, "R2", "TIP", "Some bullets run long",
+        "Keep each bullet to two lines so it can be skimmed. Lead with the result.", tooLong.slice(0, 3).map((b) => quote(b.text))));
+    }
   }
   if (share < 0.4) {
     findings.push(finding(R, "R3", "TIP", "Few bullets include numbers",
@@ -108,16 +117,22 @@ function r4(x: Extraction, doc: ResumeDoc, opts: AnalyzeOpts): { sub: number; fi
   };
 }
 
+const PROSE_SECTIONS = new Set<SectionKind>(["summary", "experience", "projects", "other"]);
+
+/** Runs of 6+ plain lines. Only where prose belongs: a skills list is not a dense paragraph. */
 function longParagraphs(x: Extraction): number {
   let runs = 0;
-  let run = 0;
-  const flush = () => { if (run > 5) runs++; run = 0; };
-  for (const l of x.lines) {
-    const plain = !l.listItem && !BULLET_PREFIX_RE.test(l.text) && l.text.length >= 30 && !l.bold;
-    if (plain) run++;
-    else flush();
+  for (const s of splitSections(x)) {
+    if (!PROSE_SECTIONS.has(s.kind)) continue;
+    let run = 0;
+    const flush = () => { if (run > 5) runs++; run = 0; };
+    for (const l of s.lines) {
+      const plain = !l.listItem && !BULLET_PREFIX_RE.test(l.text) && l.text.length >= 30 && !l.bold;
+      if (plain) run++;
+      else flush();
+    }
+    flush();
   }
-  flush();
   return runs;
 }
 
@@ -169,7 +184,8 @@ function r6(doc: ResumeDoc): { sub: number; findings: Finding[] } {
   });
   if (badTense) notes.push("Past roles use present-tense verbs");
 
-  const text = [doc.basics.summary ?? "", ...allBullets(doc).map((b) => b.text), ...doc.skills, ...doc.certifications].join("\n");
+  // Not certifications: a course's own name ("Machine Learning Specialization") isn't the writer's spelling.
+  const text = [doc.basics.summary ?? "", ...allBullets(doc).map((b) => b.text), ...doc.skills].join("\n");
   const us = SPELLING_PAIRS.map((p) => p.usRe.exec(text)?.[0]).filter((s): s is string => !!s);
   const uk = SPELLING_PAIRS.map((p) => p.ukRe.exec(text)?.[0]).filter((s): s is string => !!s);
   const badSpelling = us.length > 0 && uk.length > 0;

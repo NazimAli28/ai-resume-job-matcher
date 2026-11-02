@@ -11,7 +11,7 @@ const ids = (a: ReturnType<typeof run>) => a.findings.map((f) => f.ruleId);
 describe("ParseHealth", () => {
   it("scores a clean single-column resume at 85 or more with no parse ERR", () => {
     const a = run(makeExtraction(linesFrom(CLEAN_RESUME)));
-    expect(a.engineVersion).toBe("rules@1.0.0");
+    expect(a.engineVersion).toBe("rules@1.1.0");
     expect(a.parseHealth).toBeGreaterThanOrEqual(85);
     expect(a.findings.filter((f) => f.category === "parse" && f.severity === "ERR")).toEqual([]);
     expect(ids(a)).not.toContain("P2");

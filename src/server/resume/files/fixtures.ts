@@ -61,17 +61,20 @@ export function docx(bodyXml: string, extra: Record<string, string> = {}): Buffe
   });
 }
 
+const winAnsi = (s: string) =>
+  s.replace(/[()\\]/g, "\\$&").replace(/•/g, "\\225").replace(/–/g, "\\226").replace(/—/g, "\\227");
+
 /** Minimal one-page PDF with Helvetica text lines at given y (points from the bottom, page 612x792). */
 export function pdf(lines: { text: string; y: number; x?: number; size?: number }[]): Buffer {
   const content = lines
-    .map((l) => `BT /F1 ${l.size ?? 11} Tf ${l.x ?? 72} ${l.y} Td (${l.text.replace(/[()\\]/g, "\\$&")}) Tj ET`)
+    .map((l) => `BT /F1 ${l.size ?? 11} Tf ${l.x ?? 72} ${l.y} Td (${winAnsi(l.text)}) Tj ET`)
     .join("\n");
   const objs = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
     "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
     `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
-    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
   ];
   let out = "%PDF-1.4\n";
   const offsets: number[] = [];

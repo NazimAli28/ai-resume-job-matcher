@@ -16,19 +16,20 @@ export const IBAN_PK_RE = /\bPK\d{2}[A-Z]{4}\d{16}\b/g;
 export const PHONE_CANDIDATE_RE = /(?<![\w/])\+?\(?\d[\d\s().-]{7,17}\d(?![\w/])/g;
 
 export const URL_RE =
-  /\b(?:https?:\/\/|www\.)[^\s,;|)<>]+|\b(?:[a-z]{2,3}\.)?(?:linkedin\.com|github\.com)\/[^\s,;|)<>]+/gi;
+  /\b(?:https?:\/\/|www\.)[^\s,;|)<>]+|\b(?:[a-z]{2,3}\.)?(?:linkedin\.com|github\.com)\/[^\s,;|)<>]+|\b[\w-]+\.(?:github\.io|vercel\.app|netlify\.app)(?:\/[^\s,;|)<>]*)?/gi;
 
 /** Leading bullet glyph (with or without a space) or numbered-list marker. */
 export const BULLET_PREFIX_RE = /^\s*(?:[•▪◦●■□·▸►➢➤✓✔❖◆◇★☆→»✦❯]\s*|[-–—*]\s+|\d{1,2}[.)]\s+)/;
 
-/** R3 quantification: %, currency, magnitudes, counts with nouns. */
+/** R3 quantification: %, currency, magnitudes, or a count of something ("12 designers"), but not a date. */
 export const METRIC_RE = new RegExp(
   [
     String.raw`\d+(?:\.\d+)?\s?%`,
     String.raw`(?:PKR|Rs\.?|USD|EUR|GBP|AED|\$|£|€)\s?\d`,
     String.raw`\d[\d,.]*\s?(?:k|K|M|m|B|lakhs?|lacs?|crores?|million|billion|thousand)\b`,
-    String.raw`\b\d[\d,]*\+?\s+(?:users?|customers?|clients?|people|members?|employees|engineers?|developers?|students?|teams?|projects?|products?|reports?|sales|leads?|orders?|requests?|accounts?|tickets?|pages?|hours?|days?|weeks?|months?|years?|countries|branches|stores?|vendors?|suppliers?|applications?|apps?|features?|campaigns?|articles?|videos?|visitors?|downloads?|installs?|transactions?|workshops?|sessions?|courses?|patients?|cases?|servers?|services?|endpoints?|tests?|modules?|releases?|deployments?|systems?|dashboards?|clients)\b`,
+    String.raw`(?<![\w.\/-])(?!(?:19|20)\d{2}\b)\d[\d,]*\+?\s+(?!(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b)[A-Za-z][A-Za-z-]+`,
   ].join("|"),
+  "i",
 );
 
 export function hasMetric(text: string): boolean {

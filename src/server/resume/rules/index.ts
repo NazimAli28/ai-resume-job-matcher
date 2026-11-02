@@ -4,7 +4,7 @@ import { computeParseHealth, parseHealthFindings } from "./parse-health";
 import { readability } from "./readability";
 import { SEVERITY_ORDER, type AnalyzeOpts } from "./shared";
 
-export const ENGINE_VERSION = "rules@1.0.0";
+export const ENGINE_VERSION = "rules@1.1.0";
 export type { AnalyzeOpts } from "./shared";
 
 export function analyze(extraction: Extraction, doc: ResumeDoc, opts: AnalyzeOpts): Analysis {

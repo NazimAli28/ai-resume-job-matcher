@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { docx, para, pdf, zip } from "../files/fixtures";
 import { RejectError, sniff } from "../files/sniff";
+import { buildResumeDoc } from "../structure";
 import { extract } from "./index";
 
 const RESUME = [
@@ -111,6 +112,68 @@ describe("PDF extraction", () => {
     ]).flat();
     const e = await extract(pdf(two));
     expect(e.features.columnPages).toEqual([1]);
+  });
+
+  // Shape of a real resume exported from a word processor: spaces and bullets as their own text
+  // items, tiny bullet dots, right-aligned dates, a last section at the bottom margin. Synthetic content.
+  describe("a real-world single-column export", () => {
+    const WIDE = "Replaced the shared spreadsheets and forms with one controlled system used by 50 staff across 4 user";
+    const real = [
+      { text: "AYESHA KHAN", y: 750, x: 200, size: 20 },
+      { text: "Software Developer | Python | SQL", y: 725, x: 150, size: 12 },
+      { text: "Lahore, Pakistan | 0300-1234567 | ayesha@example.com", y: 708, x: 100, size: 9 },
+      { text: "PROFESSIONAL EXPERIENCE", y: 680, x: 40, size: 11 },
+      { text: "Kinara", y: 660, x: 40, size: 9 },
+      { text: " ", y: 660, x: 65, size: 9 },
+      { text: "Labs", y: 660, x: 68, size: 9 },
+      { text: ",", y: 660, x: 85, size: 9 },
+      { text: " ", y: 660, x: 87, size: 9 },
+      { text: "Web", y: 660, x: 89, size: 9 },
+      { text: " ", y: 660, x: 108, size: 9 },
+      { text: "Developer", y: 660, x: 110, size: 9 },
+      { text: "01/2023 - Present | Lahore, Pakistan", y: 660, x: 330, size: 9 },
+      ...[640, 610, 580].flatMap((y) => [
+        { text: "•", y, x: 44, size: 0.7 },
+        { text: WIDE, y, x: 46, size: 9 },
+        { text: "9 slash commands that talk to the REST API.", y: y - 13, x: 46, size: 9 },
+      ]),
+      { text: "SKILLS", y: 540, x: 40, size: 11 },
+      { text: "Languages—Python, PHP, SQL", y: 520, x: 40, size: 9 },
+      { text: "EDUCATION", y: 490, x: 40, size: 11 },
+      { text: "Punjab University, Bachelor's in Software Engineering", y: 470, x: 40, size: 9 },
+      { text: "08/2021 - 06/2025", y: 470, x: 400, size: 9 },
+      ...Array.from({ length: 22 }, (_, i) => ({ text: `Filler course number ${i}`, y: 450 - i * 18, x: 40, size: 9 })),
+      { text: "LANGUAGES", y: 58, x: 40, size: 11 },
+      { text: "Urdu — Native English — Proficient", y: 36, x: 40, size: 9 },
+    ];
+
+    it("keeps word spaces, ignores bullet dots, and isn't fooled into seeing columns", async () => {
+      const e = await extract(pdf(real));
+      expect(e.atsText).toContain("Kinara Labs, Web Developer");
+      expect(e.features.hiddenText).toEqual([]);
+      expect(e.features.columnPages).toEqual([]);
+    });
+
+    it("keeps a last section at the bottom margin in the body", async () => {
+      const e = await extract(pdf(real));
+      expect(e.lines.at(-1)).toMatchObject({ text: "Urdu — Native English — Proficient", band: "body" });
+    });
+
+    it("structures it correctly", async () => {
+      const d = buildResumeDoc(await extract(pdf(real)));
+      expect(d.work).toHaveLength(1);
+      expect(d.work[0]).toMatchObject({ title: "Web Developer", employer: "Kinara Labs", location: "Lahore, Pakistan" });
+      expect(d.work[0].bullets).toHaveLength(3);
+      expect(d.work[0].bullets[0].text).toBe(`${WIDE} 9 slash commands that talk to the REST API.`);
+      expect(d.skills).toEqual(["Python", "PHP", "SQL"]);
+      expect(d.languages).toEqual(["Urdu – Native", "English – Proficient"]);
+      expect(d.education[0]).toMatchObject({ institution: "Punjab University", degreeRaw: "Bachelor's in Software Engineering" });
+    });
+  });
+
+  it("still finds real tiny hidden words", async () => {
+    const e = await extract(pdf([...lines, { text: "keywords keywords", y: 300, size: 1 }]));
+    expect(e.features.hiddenText.join(" ")).toContain("keywords");
   });
 
   it("refuses image-only files", async () => {
