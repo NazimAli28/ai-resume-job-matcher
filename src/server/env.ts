@@ -36,7 +36,8 @@ export function env(): Env {
   if (!parsed.success) {
     // Names only: never print values.
     const bad = parsed.error.issues.map((i) => i.path.join(".")).join(", ");
-    throw new Error(`Invalid environment variables: ${bad}`);
+    const quoted = parsed.error.issues.some((i) => /^["'\s]|["'\s]$/.test(String(present[String(i.path[0])] ?? "")));
+    throw new Error(`Invalid environment variables: ${bad}${quoted ? " (remove quotes or spaces around the value)" : ""}`);
   }
   cached = parsed.data;
   return cached;
