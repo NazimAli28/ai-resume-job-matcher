@@ -140,6 +140,8 @@ model User {
   versions ResumeVersion[]
   jobs     Job[]
   applications Application[]
+  usage    UsageLedger[]
+  feedback Feedback[]
 
   @@index([lastSeenAt])
   @@index([deletedAt])
@@ -699,6 +701,48 @@ model Contact {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([userId, applicationId])
+}
+
+// ───────────────────────────── Platform (Phase 8) ─────────────────────────────
+enum UsageKind {
+  ANALYSIS
+  TAILORED_VERSION
+  COVER_LETTER
+  MOCK_INTERVIEW
+}
+
+/// One row per successful use of a limited feature. Failed work never writes a row (X-009).
+model UsageLedger {
+  id        String    @id @default(uuid(7))
+  userId    String
+  kind      UsageKind
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind, createdAt])
+}
+
+/// First-party usage counts. Fixed names and a keyed hash only: never content, never a user id.
+model ProductEvent {
+  id         String   @id @default(uuid(7))
+  name       String
+  userIdHash String
+  createdAt  DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([userIdHash])
+}
+
+/// "Report an issue". Only what the user typed.
+model Feedback {
+  id        String   @id @default(uuid(7))
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
 }
 
 /// Metadata for every AI call. Never prompt or response text. Backs the spend guards.

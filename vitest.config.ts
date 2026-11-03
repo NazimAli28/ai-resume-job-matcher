@@ -6,5 +6,7 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts", "evals/**/*.test.ts"],
     environment: "node",
+    // The end-to-end tests talk to the real database and storage in Singapore.
+    testTimeout: 30_000,
   },
 });

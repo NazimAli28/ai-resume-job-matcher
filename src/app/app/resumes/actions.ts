@@ -5,6 +5,8 @@ import { z } from "zod";
 import { requireUser } from "@/server/auth/user";
 import { clientIp, ipPrefix } from "@/server/http/request";
 import { captureError } from "@/server/observability/errors";
+import { track } from "@/server/events";
+import { QuotaError } from "@/server/usage/service";
 import { rateLimit } from "@/server/ratelimit";
 import { REJECT_MESSAGE, RejectError } from "@/server/resume/files/sniff";
 import * as resumes from "@/server/resume/service";
@@ -29,7 +31,7 @@ export async function startUpload(input: unknown): Promise<{ ok: true; uploadId:
     return { ok: true, ...r };
   } catch (e) {
     if (e instanceof RejectError) return { ok: false, error: REJECT_MESSAGE[e.reason] };
-    if (e instanceof resumes.QuotaError) return { ok: false, error: `You've used this month's ${resumes.MONTHLY_ANALYSES} free analyses. They reset on the 1st.` };
+    if (e instanceof QuotaError) return { ok: false, error: "You've used this month's free resume checks. They reset on the 1st." };
     if (e instanceof Error && e.message === "consent_required") return { ok: false, error: "Please tick the box to confirm how we handle sensitive details." };
     await captureError(e, { source: "ACTION", route: "app/resumes:start", userId: user.id });
     return { ok: false, error: "Something went wrong on our side. Please try again." };
@@ -43,6 +45,7 @@ export async function finishUpload(uploadId: unknown): Promise<{ ok: true; versi
   if (!id.success) return { ok: false, error: "Upload not found. Please try again." };
   try {
     const r = await resumes.finalizeUpload(user.id, id.data);
+    if (r.ok) await track(user.id, "RESUME_CHECKED");
     revalidatePath("/app/resumes");
     revalidatePath("/app");
     return r.ok ? r : { ok: false, error: REJECT_MESSAGE[r.reason] };

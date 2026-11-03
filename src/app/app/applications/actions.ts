@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/server/auth/user";
+import { track } from "@/server/events";
 import { captureError } from "@/server/observability/errors";
 import { rateLimit } from "@/server/ratelimit";
 import { contactSchema, detailsSchema, moveSchema, newApplicationSchema, notesSchema, outcomeSchema, reminderSchema, roundSchema } from "@/server/tracker/schemas";
@@ -54,7 +55,10 @@ export async function createApplicationAction(input: unknown): Promise<CreateRes
     if (dup) return { ok: false, duplicate: { id: dup.id, createdAt: dup.createdAt.toISOString() } };
   }
   const r = await change("create", (u) => tracker.createApplication(u, parsed.data));
-  return r.ok ? { ok: true, id: r.value.id } : r;
+  if (!r.ok) return r;
+  await track(user.id, "APPLICATION_ADDED");
+  if (parsed.data.status === "APPLIED") await track(user.id, "MARKED_APPLIED");
+  return { ok: true, id: r.value.id };
 }
 
 export type MoveResult = { ok: true; historyId: string | null } | Fail;
@@ -64,7 +68,9 @@ export async function moveApplicationAction(id: unknown, input: unknown): Promis
   const parsed = moveSchema.safeParse(input);
   if (!appId.success || !parsed.success) return STALE;
   const r = await change("move", (u) => tracker.moveApplication(u, appId.data, parsed.data.toStatus, parsed.data.note), () => appId.data);
-  return r.ok ? { ok: true, historyId: r.value.historyId } : r;
+  if (!r.ok) return r;
+  if (parsed.data.toStatus === "APPLIED" && r.value.historyId) await track((await requireUser()).id, "MARKED_APPLIED");
+  return { ok: true, historyId: r.value.historyId };
 }
 
 export async function undoMoveAction(id: unknown, historyId: unknown): Promise<Done> {

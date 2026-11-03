@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-// Baseline security headers on every response. A full script-src CSP with nonces lands in
-// Phase 8 (it needs the proxy and makes pages dynamic); these directives are safe today.
+// Baseline security headers on every response. Pages with personal data also get the stricter
+// per-request script policy from src/proxy.ts (src/config/csp.ts).
 const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Content-Type-Options", value: "nosniff" },

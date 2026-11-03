@@ -16,6 +16,7 @@ describe("auth schemas", () => {
   it("blocks open redirects", () => {
     expect(safeNext("/app/jobs")).toBe("/app/jobs");
     expect(safeNext("//evil.com")).toBe("/app");
+    for (const trick of ["/\t/evil.com", "/\n/evil.com", "/\r/evil.com", "/\\evil.com", "/app\\..\\x"]) expect(safeNext(trick)).toBe("/app");
     expect(safeNext("https://evil.com")).toBe("/app");
     expect(safeNext("/\\evil.com")).toBe("/app");
     expect(safeNext(null)).toBe("/app");

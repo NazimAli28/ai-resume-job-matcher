@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { audit } from "@/server/audit";
 import { safeNext } from "@/server/auth/schemas";
 import { syncUser } from "@/server/auth/user";
+import { track } from "@/server/events";
 import { ipPrefix } from "@/server/http/request";
 import { captureError } from "@/server/observability/errors";
 import { supabaseServer } from "@/server/supabase/server";
@@ -35,10 +36,11 @@ export async function GET(request: NextRequest) {
     }
     if (!user) return fail("link");
 
-    await syncUser(user);
+    await syncUser(user, { signedIn: true });
     const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
     const method = user.app_metadata?.provider === "google" ? "google" : type ?? "email_link";
     await audit("LOGIN", { subjectUserId: user.id, ipPrefix: ip ? ipPrefix(ip) : undefined, metadata: { method } });
+    await track(user.id, "SIGNED_IN");
     return NextResponse.redirect(new URL(next, url.origin));
   } catch (err) {
     await captureError(err, { source: "ROUTE", route: "/auth/callback" });

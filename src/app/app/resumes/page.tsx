@@ -3,7 +3,8 @@ import Link from "next/link";
 import { SectionCard } from "@/components/profile-real/section-card";
 import { Uploader } from "@/components/resumes-real/uploader";
 import { UPLOAD_LIMITS } from "@/server/resume/files/sniff";
-import { analysesThisMonth, hasSensitiveConsent, listVersions, MONTHLY_ANALYSES } from "@/server/resume/service";
+import { hasSensitiveConsent, listVersions } from "@/server/resume/service";
+import { usageFor } from "@/server/usage/service";
 import { requireUser } from "@/server/auth/user";
 
 export const metadata: Metadata = { title: "Resumes" };
@@ -12,7 +13,7 @@ const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: 
 
 export default async function ResumesPage() {
   const user = await requireUser();
-  const [versions, used, consented] = await Promise.all([listVersions(user.id), analysesThisMonth(user.id), hasSensitiveConsent(user.id)]);
+  const [versions, usage, consented] = await Promise.all([listVersions(user.id), usageFor(user.id, "ANALYSIS"), hasSensitiveConsent(user.id)]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -23,7 +24,7 @@ export default async function ResumesPage() {
         title="Check a resume"
         intro="Upload a PDF or Word file. We check whether software can read it and how it reads to a person. These are calculated by code, not guessed."
       >
-        <Uploader used={used} limit={MONTHLY_ANALYSES} needsConsent={!consented} maxBytes={UPLOAD_LIMITS.maxBytes} maxPages={UPLOAD_LIMITS.maxPages} />
+        <Uploader used={usage.used} limit={usage.limit} needsConsent={!consented} maxBytes={UPLOAD_LIMITS.maxBytes} maxPages={UPLOAD_LIMITS.maxPages} />
       </SectionCard>
 
       <section aria-labelledby="versions-h" className="flex flex-col gap-3">
