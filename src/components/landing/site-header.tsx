@@ -7,7 +7,8 @@ import { useEffect, useState } from "react";
 import { useTheme } from "@/components/theme/use-theme";
 import { ButtonLink, IconButton } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import { LOGO_MARK, PRODUCT_NAME } from "@/config/brand";
+import { LogoMark } from "@/components/brand/logo-mark";
+import { PRODUCT_NAME } from "@/config/brand";
 import { useScrolledPast } from "./hooks";
 
 export const ANCHORS = [
@@ -22,12 +23,7 @@ export const ANCHORS = [
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" aria-label={`${PRODUCT_NAME} home`} className="flex shrink-0 items-center gap-2.5 rounded-full py-1 pr-2">
-      <span
-        aria-hidden
-        className="grid size-8 place-items-center rounded-[10px] bg-hl font-display text-[15px] font-extrabold text-on-hl glow"
-      >
-        {LOGO_MARK}
-      </span>
+      <LogoMark className="glow size-8 rounded-[9px]" />
       <span
         className={`hidden whitespace-nowrap font-display text-[15px] font-bold leading-tight sm:text-[17px] ${compact ? "lg:inline" : "min-[400px]:inline"}`}
       >

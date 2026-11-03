@@ -13,6 +13,8 @@ export const ACCENTS: { id: Accent; label: string; hex: string }[] = [
   { id: "magenta", label: "Magenta", hex: "#FF4FD8" },
 ];
 
+const THEME_EVENT = "arw-theme-change";
+
 function read<T extends string>(key: string, fallback: T): T {
   try {
     return (localStorage.getItem(key) as T) || fallback;
@@ -39,6 +41,10 @@ export function useTheme() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeState(read<ThemePref>("arw-theme", "system"));
     setAccentState(read<Accent>("arw-accent", (document.documentElement.dataset.accent as Accent) || DEFAULT_ACCENT));
+    // The menu and Settings can both be on screen; keep their selected theme in step.
+    const onChange = (e: Event) => setThemeState((e as CustomEvent<ThemePref>).detail);
+    window.addEventListener(THEME_EVENT, onChange);
+    return () => window.removeEventListener(THEME_EVENT, onChange);
   }, []);
 
   const setTheme = useCallback(
@@ -46,6 +52,7 @@ export function useTheme() {
       setThemeState(t);
       try { localStorage.setItem("arw-theme", t); } catch {}
       apply(t, accent);
+      window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: t }));
     },
     [accent],
   );

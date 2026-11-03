@@ -13,7 +13,8 @@ import { ACCENTS, useTheme } from "@/components/theme/use-theme";
 import { IconButton } from "@/components/ui/button";
 import { Sheet } from "@/components/ui/overlay";
 import { useToast } from "@/components/ui/toast";
-import { LOGO_MARK, PRODUCT_NAME } from "@/config/brand";
+import { LogoMark } from "@/components/brand/logo-mark";
+import { PRODUCT_NAME } from "@/config/brand";
 import { CommandPalette } from "./command-palette";
 
 const NAV = [
@@ -37,9 +38,7 @@ function isActive(pathname: string, href: string) {
 function Logo({ compact }: { compact?: boolean }) {
   return (
     <Link href="/" className="flex shrink-0 items-center gap-2.5 rounded-md px-1 py-1">
-      <span aria-hidden className="glow grid size-9 place-items-center rounded-xl bg-hl font-display text-[15px] font-extrabold text-on-hl">
-        {LOGO_MARK}
-      </span>
+      <LogoMark className="glow size-9 rounded-[10px]" />
       <span className={cn("flex-col leading-tight", compact ? "hidden min-[420px]:flex" : "flex")}>
         <span className="whitespace-nowrap font-display text-[15px] font-bold">{PRODUCT_NAME}</span>
         <span className={cn("text-[11px] text-muted", compact && "hidden sm:block")}>Job search copilot</span>

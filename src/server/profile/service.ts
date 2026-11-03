@@ -29,6 +29,14 @@ export async function ensureProfile(userId: string) {
   return db.profile.upsert({ where: { userId }, create: { userId }, update: {} });
 }
 
+/** Just enough for the account menu's preview, loaded on every signed-in page. */
+export async function getProfileSummary(userId: string) {
+  return db.profile.findUnique({
+    where: { userId },
+    select: { headline: true, city: true, targetTitles: true, onboardedAt: true, _count: { select: { skills: true, experiences: true, facts: true } } },
+  });
+}
+
 export async function getFullProfile(userId: string) {
   return db.profile.findUnique({
     where: { userId },

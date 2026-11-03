@@ -7,7 +7,7 @@ const BUCKET = "resumes";
 /** Keeps a download within what the hosting will stream; older originals are listed in the README instead. */
 export const MAX_FILE_BYTES = 15 * 1024 * 1024;
 
-const README = (skipped: string[]) => `Your data from AI Resume & Job Matcher
+const README = (skipped: string[]) => `Your data from AI Resume Job Matcher
 
 data.json holds everything we store about you:
   account         your account record

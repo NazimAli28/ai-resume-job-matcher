@@ -42,7 +42,7 @@ Upload your resume, paste a job, and get an honest, explainable plan: how well y
 | Scanned PDFs (OCR) | **Out of MVP.** Scanned/image-only PDFs get a clear message ("export a text PDF or upload DOCX"). LLM-vision OCR is P2 behind a flag, and needs a privacy disclosure since it can't be masked | P |
 | Design | Calm professional SaaS (Linear/Notion-like), light + dark, one accent color | D |
 | Analytics/Admin | Minimal admin (users, usage, AI cost, flags, abuse blocks, **error log**, **funnel**) built on our own `ProductEvent`/`ErrorEvent` tables. First-party and server-side only: no third-party analytics, no session replay, no resume text in events | D |
-| Name | **AI Resume & Job Matcher** (2026-10-30); repo `ai-resume-job-matcher` (public). Default accent mint, admin-configurable in Phase 8 | D |
+| Name | **AI Resume Job Matcher** (2026-11-04, was "AI Resume & Job Matcher"); repo `ai-resume-job-matcher` (public). Default accent mint, admin-configurable in Phase 8 | D |
 | Requirement edge cases | "Learning" override = PARTIAL weighted by self-rating; UNCLEAR excluded from the score and listed separately; Sprint price set after measuring AI cost | D |
 | Capacity | Solo + AI agents, ~15–20 h/week → MVP ≈ 10–14 weeks | D |
 

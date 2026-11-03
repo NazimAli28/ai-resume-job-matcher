@@ -3,7 +3,7 @@
 > Concise, always-loaded rules. State and decisions live in [knowledge-graph.md](knowledge-graph.md). Product spec: [docs/PRD.md](docs/PRD.md) (index + locked decisions + glossary) → detail in `docs/prd/0X-*.md`. Load only the section you need.
 
 ## Project Overview
-- **Product:** AI Job Application Copilot (working title).
+- **Product:** AI Resume Job Matcher.
 - **What it does:** resume + job description → explainable fit scores, ATS-safe and recruiter-readable improvements (never fabricated), cover letters, configurable AI mock interviews with scored reports and model answers, and an application tracker that links the exact resume version and job source.
 - **Goal:** portfolio-quality build first, then launch as a SaaS. Pakistan first, global later. English only.
 - **Status:** live beta in progress, built phase by phase. See [knowledge-graph.md § Status](knowledge-graph.md#status).

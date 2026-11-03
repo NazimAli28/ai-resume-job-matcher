@@ -133,7 +133,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <FeedbackForm />
       </SectionCard>
 
-      <SectionCard id="delete" title="Delete your account" intro={`You lose access right away. You have ${UNDO_DAYS} days to change your mind by signing in. After that, your account, resumes, jobs and applications are permanently removed, and backups clear within 30 days.`}>
+      <SectionCard id="delete" title="Delete your account" intro={`You lose access right away. You have ${UNDO_DAYS} days to change your mind by signing in. After that, your account, resumes, jobs and applications are permanently removed.`}>
         <DeleteAccount recent={recent} />
       </SectionCard>
     </div>
