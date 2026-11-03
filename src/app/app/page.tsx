@@ -1,7 +1,6 @@
-import { CheckCircle2, MailWarning, PlayCircle, Sparkles } from "lucide-react";
+import { CheckCircle2, PlayCircle, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { signOut } from "@/app/(auth)/actions";
 import { FormAlert } from "@/components/auth/auth-ui";
 import { DashboardStats } from "@/components/dashboard-real/stats";
 import { SectionCard } from "@/components/profile-real/section-card";
@@ -335,34 +334,6 @@ export default async function AppHome({ searchParams }: PageProps<"/app">) {
       )}
 
       {profileItems.some((i) => !i.done) && <ProfileStep items={profileItems} />}
-
-      <section className="card flex flex-col gap-4 p-6" aria-labelledby="acct-h">
-        <h2 id="acct-h" className="font-display text-lg font-bold">Your account</h2>
-        <dl className="grid gap-3 text-sm sm:grid-cols-[10rem_1fr]">
-          <dt className="text-muted">Email</dt>
-          <dd className="font-semibold">{user.email}</dd>
-          <dt className="text-muted">Email confirmed</dt>
-          <dd className="flex items-center gap-2 font-semibold">
-            {user.emailVerified ? (
-              <>
-                <CheckCircle2 className="size-4 text-hl-ink" aria-hidden /> Yes
-              </>
-            ) : (
-              <>
-                <MailWarning className="size-4 text-warn" aria-hidden /> Not yet. Check your inbox for the link.
-              </>
-            )}
-          </dd>
-          <dt className="text-muted">Plan</dt>
-          <dd className="font-semibold">Free beta</dd>
-        </dl>
-        <form action={signOut} className="border-t border-rule pt-4">
-          <input type="hidden" name="scope" value="global" />
-          <button type="submit" className="text-sm font-semibold text-muted underline-offset-4 hover:text-ink hover:underline">
-            Sign out on all devices
-          </button>
-        </form>
-      </section>
     </div>
   );
 }

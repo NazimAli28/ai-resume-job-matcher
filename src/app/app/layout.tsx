@@ -1,3 +1,4 @@
+import { Settings } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { signOut } from "@/app/(auth)/actions";
@@ -37,6 +38,14 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden max-w-[16rem] truncate text-sm text-muted sm:block">{user.email}</span>
+            {user.role === "ADMIN" && (
+              <Link href="/admin" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink">
+                Admin
+              </Link>
+            )}
+            <Link href="/app/settings" aria-label="Settings" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-sunken hover:text-ink">
+              <Settings className="size-5" aria-hidden />
+            </Link>
             <form action={signOut}>
               <button type="submit" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-semibold hover:bg-sunken">
                 Sign out
@@ -52,6 +61,8 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
         <Link href="/legal/terms" className="hover:text-ink">Terms</Link>
         <Link href="/legal/privacy" className="hover:text-ink">Privacy</Link>
         <Link href="/legal/ai" className="hover:text-ink">How we use AI</Link>
+        <Link href="/legal/acceptable-use" className="hover:text-ink">Acceptable use</Link>
+        <Link href="/legal/cookies" className="hover:text-ink">Cookies</Link>
       </footer>
     </div>
   );

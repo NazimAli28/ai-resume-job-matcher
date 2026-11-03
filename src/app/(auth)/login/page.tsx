@@ -12,6 +12,8 @@ const NOTICE: Record<string, { tone: "error" | "ok"; text: string }> = {
   link: { tone: "error", text: "That link has expired or was already used. Sign in, or request a new link." },
   google: { tone: "error", text: "Google sign-in didn't complete. Please try again." },
   server: { tone: "error", text: "Something went wrong on our side. Please try again." },
+  expired: { tone: "ok", text: "You were signed out because your session reached its time limit. Please sign in again." },
+  reauth: { tone: "ok", text: "For your security, please sign in again to continue." },
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {

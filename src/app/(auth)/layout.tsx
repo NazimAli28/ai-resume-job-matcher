@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Logo } from "@/components/landing/site-header";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  // Per-request rendering, so these pages get the proxy's script nonce (src/config/csp.ts).
+  await connection();
   return (
     <div className="ambient flex min-h-screen flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">

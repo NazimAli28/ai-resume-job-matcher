@@ -4,26 +4,14 @@ import { LEGAL } from "@/config/legal";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
 import { supabaseAdmin } from "../supabase/admin";
+import { assertQuota, recordUsage } from "../usage/service";
 import { extract } from "./extract";
 import { RejectError, UPLOAD_LIMITS, type RejectReason } from "./files/sniff";
 import { analyze } from "./rules";
 import { buildResumeDoc } from "./structure";
 
 const BUCKET = "resumes";
-/** Free beta: 3 analyses a month × 2 (PRD §5b). Moves to UsageLedger/entitlements in Phase 8. */
-export const MONTHLY_ANALYSES = 6;
-
-export class QuotaError extends Error {}
 export class NotFoundError extends Error {}
-
-const monthStart = () => {
-  const d = new Date();
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
-};
-
-export async function analysesThisMonth(userId: string) {
-  return db.resumeUpload.count({ where: { userId, createdAt: { gte: monthStart() }, status: { in: ["PARSED", "PENDING", "UPLOADED"] } } });
-}
 
 export async function hasSensitiveConsent(userId: string) {
   const c = await db.consentRecord.findFirst({ where: { userId, type: "SENSITIVE_DATA" }, orderBy: { createdAt: "desc" } });
@@ -38,7 +26,9 @@ export async function createUpload(userId: string, file: { name: string; size: n
   if (file.size <= 0 || file.size > UPLOAD_LIMITS.maxBytes) throw new RejectError(file.size <= 0 ? "EMPTY" : "TOO_LARGE");
   const ext = file.name.toLowerCase().match(/\.(pdf|docx)$/)?.[1];
   if (!ext) throw new RejectError("WRONG_TYPE");
-  if ((await analysesThisMonth(userId)) >= MONTHLY_ANALYSES) throw new QuotaError();
+  // Uploads in progress count too, so several started at once can't pass the monthly limit.
+  const inProgress = await db.resumeUpload.count({ where: { userId, status: { in: ["PENDING", "UPLOADED"] }, createdAt: { gte: new Date(Date.now() - 86_400_000) } } });
+  await assertQuota(userId, "ANALYSIS", inProgress);
 
   if (!(await hasSensitiveConsent(userId))) {
     if (!opts.consentGiven) throw new Error("consent_required");
@@ -57,7 +47,8 @@ export async function createUpload(userId: string, file: { name: string; size: n
 }
 
 async function removeFile(storageKey: string, uploadId: string) {
-  await supabaseAdmin().storage.from(BUCKET).remove([storageKey]);
+  const { error } = await supabaseAdmin().storage.from(BUCKET).remove([storageKey]);
+  if (error) throw new Error("storage remove failed");
   await db.resumeUpload.update({ where: { id: uploadId }, data: { fileDeletedAt: new Date() } });
 }
 
@@ -65,6 +56,9 @@ async function removeFile(storageKey: string, uploadId: string) {
 export async function finalizeUpload(userId: string, uploadId: string): Promise<{ ok: true; versionId: string } | { ok: false; reason: RejectReason }> {
   const up = await db.resumeUpload.findFirst({ where: { id: uploadId, userId, status: "PENDING" } });
   if (!up) throw new NotFoundError();
+  // Claim it, so two simultaneous calls can't create two versions or count twice.
+  const { count: claimed } = await db.resumeUpload.updateMany({ where: { id: up.id, userId, status: "PENDING" }, data: { status: "UPLOADED" } });
+  if (!claimed) throw new NotFoundError();
 
   const { data: blob, error } = await supabaseAdmin().storage.from(BUCKET).download(up.storageKey);
   if (error || !blob) {
@@ -134,6 +128,7 @@ export async function finalizeUpload(userId: string, uploadId: string): Promise<
   });
 
   if (profile?.deleteOriginalAfterParse) await removeFile(up.storageKey, up.id);
+  await recordUsage(userId, "ANALYSIS");
   return { ok: true, versionId: version.id };
 }
 

@@ -38,7 +38,7 @@ export function useTheme() {
     // Sync with what ThemeScript applied before hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeState(read<ThemePref>("arw-theme", "system"));
-    setAccentState(read<Accent>("arw-accent", DEFAULT_ACCENT));
+    setAccentState(read<Accent>("arw-accent", (document.documentElement.dataset.accent as Accent) || DEFAULT_ACCENT));
   }, []);
 
   const setTheme = useCallback(

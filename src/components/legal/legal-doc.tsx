@@ -22,6 +22,8 @@ export function LegalDoc({ title, version, updated, children }: { title: string;
         <Link href="/legal/terms" className="hover:text-ink">Terms</Link>
         <Link href="/legal/privacy" className="hover:text-ink">Privacy Policy</Link>
         <Link href="/legal/ai" className="hover:text-ink">How we use AI</Link>
+        <Link href="/legal/acceptable-use" className="hover:text-ink">Acceptable use</Link>
+        <Link href="/legal/cookies" className="hover:text-ink">Cookies</Link>
       </nav>
     </article>
   );

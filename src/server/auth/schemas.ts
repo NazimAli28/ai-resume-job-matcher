@@ -20,6 +20,7 @@ export const newPasswordSchema = z
 
 /** Only same-site relative paths, so a crafted ?next= can't send users to another site. */
 export function safeNext(next: string | null | undefined, fallback = "/app"): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
+  // Browsers and URL parsers drop tabs and newlines and read "\" as "/", so "/<TAB>/evil.com" would leave the site.
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(next)) return fallback;
   return next;
 }

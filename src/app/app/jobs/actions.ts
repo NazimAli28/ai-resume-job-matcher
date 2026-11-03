@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { AiUnavailableError } from "@/server/ai/run";
 import { requireUser } from "@/server/auth/user";
+import { track } from "@/server/events";
 import { evidenceSchema, newJobSchema, requirementSchema } from "@/server/match/schemas";
 import * as jobs from "@/server/match/service";
 import { captureError } from "@/server/observability/errors";
@@ -38,6 +39,7 @@ export async function createJobAction(input: unknown): Promise<CreateJobResult> 
   if (!(await rateLimit(`job:extract:day:${user.id}`, 50, 86400)).ok) return { ok: false, error: "You've reached today's limit of 50 jobs." };
   try {
     const job = await jobs.createJob(user.id, parsed.data);
+    await track(user.id, "JOB_MATCHED");
     revalidatePath("/app/jobs");
     return { ok: true, jobId: job.id };
   } catch (e) {

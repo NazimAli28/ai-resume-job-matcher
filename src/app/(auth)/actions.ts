@@ -9,8 +9,10 @@ import { isBreachedPassword } from "@/server/auth/breached";
 import { recordSignupConsent } from "@/server/auth/consent";
 import { DEV_LOGIN_COOKIE } from "@/server/auth/dev-login";
 import { newPasswordSchema, resetRequestSchema, safeNext, signInSchema, signUpSchema } from "@/server/auth/schemas";
-import { syncUser } from "@/server/auth/user";
+import { isRecentlySignedIn, syncUser } from "@/server/auth/user";
+import { db } from "@/server/db";
 import { env } from "@/server/env";
+import { track } from "@/server/events";
 import { clientIp, ipPrefix, pepperHash } from "@/server/http/request";
 import { captureError } from "@/server/observability/errors";
 import { rateLimit } from "@/server/ratelimit";
@@ -76,8 +78,9 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
     if (error?.code === "email_not_confirmed") return { error: "Please confirm your email first. Check your inbox for the link." };
     return { error: "Email or password is incorrect." };
   }
-  await syncUser(data.user);
+  await syncUser(data.user, { signedIn: true });
   await audit("LOGIN", { subjectUserId: data.user.id, ipPrefix: ipPrefix(ip), metadata: { method: "password" } });
+  await track(data.user.id, "SIGNED_IN");
   redirect(safeNext(form.get("next")?.toString()));
 }
 
@@ -119,6 +122,10 @@ export async function updatePassword(_: FormState, form: FormData): Promise<Form
   const { data: claims } = await supabase.auth.getClaims();
   const uid = claims?.claims?.sub as string | undefined;
   if (!uid) return { error: "Your reset link has expired. Request a new one." };
+  const state = await db.user.findUnique({ where: { id: uid }, select: { blockedAt: true, deletedAt: true } });
+  if (state?.blockedAt || state?.deletedAt) return { error: "This account can't change its password right now." };
+  // A reset link counts as a fresh sign-in. This stops someone at an unlocked browser from taking over the account.
+  if (!(await isRecentlySignedIn())) return { error: "For your security, sign in again or use a new reset link before changing your password." };
   if (await isBreachedPassword(parsed.data.password)) return { fieldErrors: { password: BREACHED } };
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return { error: "We couldn't update the password. Request a new reset link and try again." };
