@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { LegalDoc } from "@/components/legal/legal-doc";
 import { LEGAL } from "@/config/legal";
-import { contactEmail, operatorName } from "@/config/legal-entity";
+import { contactChannel, OPERATOR } from "@/config/legal-entity";
 
 export const metadata: Metadata = { title: "Privacy Policy" };
 
 export default function PrivacyPage() {
   return (
-    <LegalDoc title="Privacy Policy" version={LEGAL.privacy.split("@")[1]} updated="30 October 2026">
+    <LegalDoc title="Privacy Policy" version={LEGAL.privacy.split("@")[1]} updated="4 November 2026">
       <h2>The short version</h2>
       <ul>
         <li>We collect what you give us (your account, resumes, job posts, applications and interview answers) to run the features you use.</li>
@@ -19,7 +19,8 @@ export default function PrivacyPage() {
 
       <h2>Who we are</h2>
       <p>
-        This service is operated by {operatorName()}. For any privacy question or request, contact {contactEmail()}.
+        {OPERATOR.name} is run from {OPERATOR.country}. In this policy, &quot;we&quot; means {OPERATOR.name}. For any privacy
+        question or request, {contactChannel()}.
       </p>
 
       <h2>What we collect</h2>
@@ -49,12 +50,9 @@ export default function PrivacyPage() {
       <h2>Who we share it with</h2>
       <p>Only the service providers that run the product, acting on our instructions:</p>
       <ul>
-        <li><strong>Supabase</strong>: database, sign-in and file storage, hosted in Singapore.</li>
+        <li><strong>Supabase</strong>: database, sign-in, file storage and account emails, hosted in Singapore.</li>
         <li><strong>Vercel</strong>: hosting; our application servers run in Singapore and requests pass through Vercel&apos;s global network.</li>
-        <li><strong>Anthropic</strong> (USA): AI processing of masked text for features you request. Anthropic does not use this data to train its models under its commercial terms and keeps it only for a limited period.</li>
-        <li><strong>Resend</strong>: sending account emails.</li>
-        <li><strong>GitHub</strong> (USA): stores our encrypted database backups; the encryption key is not held by GitHub.</li>
-      </ul>
+        <li><strong>Anthropic</strong> (USA): AI processing of masked text for features you request. Anthropic does not use this data to train its models under its commercial terms and keeps it only for a limited period.</li>      </ul>
       <p>We share data with others only if the law requires it, or to protect people&apos;s safety and rights.</p>
 
       <h2>How long we keep it</h2>
@@ -62,14 +60,15 @@ export default function PrivacyPage() {
         <li>Your account and content: until you delete them or your account.</li>
         <li>Inactive accounts: deleted after 24 months without a sign-in, after two warning emails.</li>
         <li>Raw interview answers: deleted 12 months after the interview; scores and summaries stay until you delete them.</li>
-        <li>Deleted accounts: removed after a 7-day undo window, and from backups within 30 days after that.</li>
-        <li>Security logs: 12 months. Error records: 90 days. Backups: 30 days.</li>
+        <li>Deleted accounts: removed after a 7-day undo window.</li>
+        <li>Security logs: 12 months. Error records: 90 days.</li>
+        <li>Backups: we don&apos;t keep separate backups during the beta. If that changes, we&apos;ll update this policy first.</li>
       </ul>
 
       <h2>Your rights</h2>
       <p>
         You can see, export, correct and delete your data, withdraw consent, and object to processing. Most of this is
-        self-serve in Settings; anything else, email {contactEmail()} and we&apos;ll respond within 30 days. If you are in
+        self-serve in Settings; for anything else, {contactChannel()} and we&apos;ll respond within 30 days. If you are in
         the EU or UK, you may also complain to your data protection authority.
       </p>
 

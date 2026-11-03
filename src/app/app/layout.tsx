@@ -1,69 +1,49 @@
-import { Settings } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { signOut } from "@/app/(auth)/actions";
-import { Logo } from "@/components/landing/site-header";
+import { AppNav } from "@/components/app-nav/app-nav";
 import { PRODUCT_NAME } from "@/config/brand";
 import { requireUser } from "@/server/auth/user";
+import { getProfileSummary } from "@/server/profile/service";
 
 export const metadata: Metadata = { title: { default: PRODUCT_NAME, template: `%s · ${PRODUCT_NAME}` } };
 
 // Signed-in area. requireUser() re-checks the session, deletion/block state and consent on every request.
 export default async function AppLayout({ children }: LayoutProps<"/app">) {
   const user = await requireUser();
+  const profile = await getProfileSummary(user.id);
   return (
-    <div className="ambient flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 px-3 pt-3">
-        <div className="card mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2 backdrop-blur-xl [background:color-mix(in_oklab,var(--surface)_82%,transparent)]">
-          {/* On phones the links take their own row, so four of them never collide with Sign out. */}
-          <div className="contents sm:flex sm:min-w-0 sm:items-center sm:gap-4">
-            <Logo compact />
-            <nav aria-label="Main" className="order-last flex basis-full items-center gap-1 sm:order-none sm:basis-auto">
-              <Link href="/app" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
-                Home
-              </Link>
-              <Link href="/app/resumes" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
-                Resumes
-              </Link>
-              <Link href="/app/jobs" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
-                Jobs
-              </Link>
-              <Link href="/app/applications" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
-                Tracker
-              </Link>
-              <Link href="/app/profile" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink sm:px-3">
-                Profile
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden max-w-[16rem] truncate text-sm text-muted sm:block">{user.email}</span>
-            {user.role === "ADMIN" && (
-              <Link href="/admin" className="inline-flex min-h-10 items-center rounded-xl px-2 text-sm font-semibold text-muted hover:bg-sunken hover:text-ink">
-                Admin
-              </Link>
-            )}
-            <Link href="/app/settings" aria-label="Settings" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-sunken hover:text-ink">
-              <Settings className="size-5" aria-hidden />
-            </Link>
-            <form action={signOut}>
-              <button type="submit" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-xl px-3 text-sm font-semibold hover:bg-sunken">
-                Sign out
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-8 sm:px-6">
-        {children}
-      </main>
-      <footer className="flex flex-wrap justify-center gap-x-5 gap-y-1 px-4 pb-6 text-[13px] text-muted">
-        <Link href="/legal/terms" className="hover:text-ink">Terms</Link>
-        <Link href="/legal/privacy" className="hover:text-ink">Privacy</Link>
-        <Link href="/legal/ai" className="hover:text-ink">How we use AI</Link>
-        <Link href="/legal/acceptable-use" className="hover:text-ink">Acceptable use</Link>
-        <Link href="/legal/cookies" className="hover:text-ink">Cookies</Link>
-      </footer>
+    <div className="ambient flex min-h-screen flex-col lg:flex-row">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
+        Skip to content
+      </a>
+      <AppNav
+        account={{
+          name: user.name,
+          email: user.email,
+          isAdmin: user.role === "ADMIN",
+          profile: {
+            headline: profile?.headline ?? null,
+            city: profile?.city ?? null,
+            targetTitles: profile?.targetTitles ?? [],
+            onboarded: Boolean(profile?.onboardedAt),
+            skills: profile?._count.skills ?? 0,
+            roles: profile?._count.experiences ?? 0,
+            evidence: profile?._count.facts ?? 0,
+          },
+        }}
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:pt-8">
+          {children}
+        </main>
+        <footer className="flex flex-wrap justify-center gap-x-5 gap-y-1 px-4 pb-6 text-[13px] text-muted">
+          <Link href="/legal/terms" className="hover:text-ink">Terms</Link>
+          <Link href="/legal/privacy" className="hover:text-ink">Privacy</Link>
+          <Link href="/legal/ai" className="hover:text-ink">How we use AI</Link>
+          <Link href="/legal/acceptable-use" className="hover:text-ink">Acceptable use</Link>
+          <Link href="/legal/cookies" className="hover:text-ink">Cookies</Link>
+        </footer>
+      </div>
     </div>
   );
 }

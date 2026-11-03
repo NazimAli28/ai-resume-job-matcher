@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { LegalDoc } from "@/components/legal/legal-doc";
-import { contactEmail } from "@/config/legal-entity";
+import { contactChannel } from "@/config/legal-entity";
 
 export const metadata: Metadata = { title: "Acceptable Use Policy" };
 
@@ -32,7 +32,7 @@ export default function AcceptableUsePage() {
       </p>
 
       <h2>Reporting</h2>
-      <p>To report abuse, use Report an issue in Settings or contact {contactEmail()}.</p>
+      <p>To report abuse, {contactChannel()}.</p>
     </LegalDoc>
   );
 }

@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDoc } from "@/components/legal/legal-doc";
 import { LEGAL, MIN_AGE } from "@/config/legal";
-import { contactEmail, operatorName } from "@/config/legal-entity";
+import { contactChannel, OPERATOR } from "@/config/legal-entity";
 
 export const metadata: Metadata = { title: "Terms of Service" };
 
 export default function TermsPage() {
   return (
-    <LegalDoc title="Terms of Service" version={LEGAL.terms.split("@")[1]} updated="30 October 2026">
+    <LegalDoc title="Terms of Service" version={LEGAL.terms.split("@")[1]} updated="4 November 2026">
       <h2>1. The agreement</h2>
       <p>
-        These terms are an agreement between you and {operatorName()} for using AI Resume &amp; Job Matcher. By creating an
-        account you accept them and our <Link href="/legal/privacy">Privacy Policy</Link>.
+        These terms are an agreement between you and {OPERATOR.name} (&quot;we&quot;), run from {OPERATOR.country}, for using
+        the service. By creating an account you accept them and our <Link href="/legal/privacy">Privacy Policy</Link>.
       </p>
 
       <h2>2. Who can use it</h2>
@@ -44,7 +44,8 @@ export default function TermsPage() {
       <h2>6. Free beta</h2>
       <p>
         The service is free during the beta, with usage limits. Features can change while we build it. Paid plans will
-        come later with their own clear terms, and we will never charge you without your explicit agreement.
+        come later with their own clear terms, and we will never charge you without your explicit agreement. We don&apos;t
+        keep separate backups during the beta, so download anything you can&apos;t afford to lose (Settings, Your data).
       </p>
 
       <h2>7. Ending your account</h2>
@@ -58,8 +59,8 @@ export default function TermsPage() {
 
       <h2>9. Changes and contact</h2>
       <p>
-        If these terms change in a meaningful way we&apos;ll tell you before the change applies. Questions:{" "}
-        {contactEmail()}.
+        If these terms change in a meaningful way we&apos;ll tell you before the change applies. For questions,{" "}
+        {contactChannel()}.
       </p>
     </LegalDoc>
   );

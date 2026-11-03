@@ -4,6 +4,8 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 /* Viewport height, for short laptop screens (e.g. 1366x768 at 125% scaling). */
 @custom-variant tall (@media (min-height: 760px));
+/* The desktop side menu's collapsed state, set before paint by ThemeScript so it never jumps. Doesn't affect the phone drawer. */
+@custom-variant rail-collapsed (&:where([data-sidebar="collapsed"] [data-rail], [data-sidebar="collapsed"] [data-rail] *));
 
 /* ------------------------------------------------------------------ tokens */
 :root {

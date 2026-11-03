@@ -1,7 +1,7 @@
 /** Bump a version when the document changes materially; signups record the version they accepted. */
 export const LEGAL = {
-  terms: "terms@2026-10-30",
-  privacy: "privacy@2026-10-30",
+  terms: "terms@2026-11-04",
+  privacy: "privacy@2026-11-04",
   aiDisclaimer: "ai@2026-10-30",
 } as const;
 

@@ -155,7 +155,7 @@ describe.skipIf(!hasEnv)("export, deletion and daily job end to end", async () =
     const page = await adminUsers(0);
     expect(page.rows.length).toBeGreaterThanOrEqual(1);
     expect(Object.keys(page.rows[0])).not.toContain("content");
-    expect(maskEmail("nazim@example.com")).toBe("na***@example.com");
+    expect(maskEmail("sample@example.com")).toBe("sa***@example.com");
   }, 30_000);
 
   it("the daily job tidies expired rows and reports each step", async () => {

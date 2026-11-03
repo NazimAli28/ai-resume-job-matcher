@@ -1,12 +1,14 @@
+import { PRODUCT_NAME } from "./brand";
+
 /**
- * Who operates the service, shown in the legal pages. FOUNDER TO CONFIRM before public launch
- * (tracked in knowledge-graph.md open questions). Never guess these.
+ * Who the legal pages name. The founder chose the product name over a personal name (2026-11-04);
+ * a lawyer should confirm this before public launch (knowledge-graph.md).
  */
 export const OPERATOR = {
-  name: "", // legal name of the person operating the service (founder, 2026-10-31)
+  name: PRODUCT_NAME,
   country: "Pakistan",
-  contactEmail: "", // a monitored inbox for privacy and legal requests
+  contactEmail: "", // a monitored inbox for privacy and legal requests; FOUNDER TO PROVIDE
 };
 
-export const operatorName = () => OPERATOR.name || "the operator of AI Resume & Job Matcher";
-export const contactEmail = () => OPERATOR.contactEmail || "the contact address listed on this page once published";
+/** Finishes a sentence such as "For any privacy question, ...". */
+export const contactChannel = () => (OPERATOR.contactEmail ? `email ${OPERATOR.contactEmail}` : "use Report an issue in Settings");

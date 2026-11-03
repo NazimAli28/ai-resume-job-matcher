@@ -36,9 +36,9 @@ export default function CookiesPage() {
               <td>Only during sign-in</td>
             </tr>
             <tr>
-              <td>arw-theme, arw-accent</td>
+              <td>arw-theme, arw-accent, arw-sidebar</td>
               <td>Browser storage</td>
-              <td>Remembers light or dark mode and your accent color</td>
+              <td>Remembers light or dark mode, your accent color, and whether the side menu is open</td>
               <td>Until you clear them</td>
             </tr>
           </tbody>

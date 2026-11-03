@@ -1,4 +1,4 @@
-# AI Resume & Job Matcher
+# AI Resume Job Matcher
 
 Upload a resume, paste a job, and see honestly how you fit. Evidence-backed resume edits that never invent experience, configurable mock interviews with scored reports, and an application tracker that remembers which resume you sent.
 

@@ -17,6 +17,8 @@ const atkinson = Atkinson_Hyperlegible_Next({
 });
 
 export const metadata: Metadata = {
+  // Share links and icons follow the live address, so moving to a new domain only needs NEXT_PUBLIC_APP_URL.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: `${PRODUCT_NAME}: ${PRODUCT_TAGLINE}`,
   description:
     "Upload your resume, paste a job, and see exactly how you fit. Evidence-backed resume edits that never invent experience, mock interviews with model answers, and a tracker that remembers which resume you sent.",

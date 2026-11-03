@@ -10,6 +10,7 @@ export function ThemeScript({ accent }: { accent: Accent }) {
     var dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     document.documentElement.dataset.accent = a;
+    document.documentElement.dataset.sidebar = localStorage.getItem("arw-sidebar") === "collapsed" ? "collapsed" : "open";
   } catch (e) {}
 })();`;
   return (
