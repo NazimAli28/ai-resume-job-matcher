@@ -53,7 +53,6 @@ export const COUNTRY_RE = new RegExp(`^(?:${COUNTRIES.join("|")})$`, "i");
 
 /** Strip a string of control chars and collapse whitespace. */
 export function squash(s: string): string {
-  // eslint-disable-next-line no-control-regex
   return s.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
 }
 

@@ -105,7 +105,7 @@ export function piiFindings(x: Extraction, opts: AnalyzeOpts): Finding[] {
   const docIds: string[] = [];
   for (const t of lines) {
     for (const m of t.matchAll(PASSPORT_RE)) docIds.push(`Passport no. ${(m[1] ?? "").slice(0, 2)}${DOT.repeat(7)}`);
-    for (const m of t.matchAll(LICENCE_RE)) docIds.push(`Driving licence no. ${DOT.repeat(6)}`);
+    docIds.push(...Array.from(t.matchAll(LICENCE_RE), () => `Driving licence no. ${DOT.repeat(6)}`));
     for (const m of t.matchAll(IBAN_PK_RE)) docIds.push(`IBAN ${m[0].slice(0, 4)}${DOT.repeat(20)}`);
   }
   if (docIds.length) {
