@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 ships no compiler API, which typescript-eslint (via eslint-config-next) needs. Remove once it supports 7.
+      - dependency-name: typescript
+        versions: [">=7"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
