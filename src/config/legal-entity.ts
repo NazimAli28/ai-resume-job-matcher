@@ -2,7 +2,7 @@ import { PRODUCT_NAME } from "./brand";
 
 /**
  * Who the legal pages name. The founder chose the product name over a personal name (2026-11-04);
- * a lawyer should confirm this before public launch (knowledge-graph.md).
+ * a lawyer should confirm this before public launch.
  */
 export const OPERATOR = {
   name: PRODUCT_NAME,

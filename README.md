@@ -2,7 +2,7 @@
 
 Upload a resume, paste a job, and see honestly how you fit. Evidence-backed resume edits that never invent experience, configurable mock interviews with scored reports, and an application tracker that remembers which resume you sent.
 
-> **Status:** in active development. The current build is a clickable prototype running on sample data in your browser; the real backend is being built phase by phase (see [the roadmap](docs/prd/08-roadmap-quality.md)).
+> **Status:** live beta, built phase by phase: profile and evidence bank, resume upload and analysis, job matching, application tracker, settings with data export and account deletion. AI-written cover letters and mock interviews come next.
 
 ## Principles
 - **Never fabricate.** Suggestions cite your resume or facts you confirmed. A skill the job wants but you don't list becomes a question, never an edit.
@@ -21,9 +21,7 @@ npm run dev                  # http://localhost:3000
 npm run lint && npm run typecheck && npm test
 ```
 
-## Documentation
-- Product spec: [docs/PRD.md](docs/PRD.md) and [docs/prd/](docs/prd/)
-- Security and privacy design: [docs/prd/06-security-privacy.md](docs/prd/06-security-privacy.md)
+## Security
 - Reporting a vulnerability: [SECURITY.md](SECURITY.md)
 
 ## License
