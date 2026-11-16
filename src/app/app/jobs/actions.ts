@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { budgetMessage } from "@/server/ai/limits";
 import { AiUnavailableError } from "@/server/ai/run";
 import { requireUser } from "@/server/auth/user";
 import { track } from "@/server/events";
@@ -45,7 +46,7 @@ export async function createJobAction(input: unknown): Promise<CreateJobResult> 
   } catch (e) {
     if (e instanceof AiUnavailableError) {
       if (e.reason === "FAILED") await captureError(e, { source: "ACTION", route: "app/jobs:create", userId: user.id });
-      return { ok: false, error: AI_MESSAGE[e.reason] };
+      return { ok: false, error: budgetMessage(e, AI_MESSAGE[e.reason]) };
     }
     if (e instanceof jobs.NotAJobError) return { ok: false, error: "This doesn't look like a job description. Paste the full post and try again.", field: "rawText" };
     if (e instanceof jobs.NotFoundError) return { ok: false, error: "That resume wasn't found. Please choose another.", field: "resumeVersionId" };

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { budgetMessage } from "@/server/ai/limits";
 import { AiUnavailableError } from "@/server/ai/run";
 import { requireUser } from "@/server/auth/user";
 import * as iv from "@/server/interview/service";
@@ -27,7 +28,7 @@ async function guard<T>(route: string, fn: (userId: string) => Promise<T>, limit
     return { ok: true, data: await fn(user.id) };
   } catch (e) {
     if (e instanceof QuotaError) return { ok: false, error: "You've used this month's mock interviews. They reset on the 1st." };
-    if (e instanceof AiUnavailableError) return { ok: false, error: AI_MESSAGE[e.reason] };
+    if (e instanceof AiUnavailableError) return { ok: false, error: budgetMessage(e, AI_MESSAGE[e.reason]) };
     if (e instanceof iv.NotFoundError) return { ok: false, error: "That interview no longer exists." };
     if (e instanceof iv.StateError) return { ok: false, error: e.message === "too_many_attempts" ? "You've tried this question five times. Try another one." : "That question was already answered. Refresh the page." };
     await captureError(e, { source: "ACTION", route: `app/interviews:${route}`, userId: user.id });

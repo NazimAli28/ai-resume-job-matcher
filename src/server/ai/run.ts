@@ -4,40 +4,46 @@ import { env } from "../env";
 import { captureError } from "../observability/errors";
 import { createAnthropicProvider } from "./provider/anthropic";
 import { devFakeProvider } from "./provider/dev-fake";
+import { blockedBy, parseLimits, windowStarts, type Period, type Spent, type SpendLimits } from "./limits";
 import { AiInvalidOutputError, AiRefusedError, type AiProvider, type StructuredRequest, type StructuredResult } from "./provider/types";
 
-/** PRD §5b. App-level guards in USD; the Anthropic console spend limit sits behind these. */
-export const SPEND = { userDaily: 0.5, userMonthly: 1.5, globalDaily: 10 } as const;
-
 export class AiUnavailableError extends Error {
-  constructor(public reason: "NOT_CONFIGURED" | "KILL_SWITCH" | "USER_BUDGET" | "GLOBAL_BUDGET" | "FAILED" | "PROVIDER") {
+  constructor(
+    public reason: "NOT_CONFIGURED" | "KILL_SWITCH" | "USER_BUDGET" | "GLOBAL_BUDGET" | "FAILED" | "PROVIDER",
+    public period?: Period,
+  ) {
     super(`ai_unavailable:${reason}`);
   }
 }
 
-const dayStart = () => {
-  const d = new Date();
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-};
-const monthStart = () => {
-  const d = new Date();
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
-};
+/** Current limits: the admin's saved values, or the defaults. */
+export async function spendLimits(): Promise<SpendLimits> {
+  const row = await db.appSetting.findUnique({ where: { key: "ai_limits" } });
+  return parseLimits(row?.value);
+}
 
-async function spent(where: { userId?: string; since: Date }) {
-  const r = await db.aiRequest.aggregate({
-    _sum: { costUsd: true },
-    where: { createdAt: { gte: where.since }, ...(where.userId ? { userId: where.userId } : {}) },
-  });
-  return r._sum.costUsd ?? 0;
+/** Everyone's and one person's spend in each window, in one query. */
+export async function spentSoFar(userId: string, now = new Date()): Promise<Spent> {
+  const w = windowStarts(now);
+  const from = w.week < w.month ? w.week : w.month;
+  const [r] = await db.$queryRaw<Spent[]>`
+    SELECT
+      COALESCE(SUM("costUsd") FILTER (WHERE "createdAt" >= ${w.day}), 0)::float8 AS "globalDay",
+      COALESCE(SUM("costUsd") FILTER (WHERE "createdAt" >= ${w.month}), 0)::float8 AS "globalMonth",
+      COALESCE(SUM("costUsd") FILTER (WHERE "userId" = ${userId} AND "createdAt" >= ${w.day}), 0)::float8 AS "userDay",
+      COALESCE(SUM("costUsd") FILTER (WHERE "userId" = ${userId} AND "createdAt" >= ${w.week}), 0)::float8 AS "userWeek",
+      COALESCE(SUM("costUsd") FILTER (WHERE "userId" = ${userId} AND "createdAt" >= ${w.month}), 0)::float8 AS "userMonth"
+    FROM "AiRequest"
+    WHERE "createdAt" >= ${from}`;
+  return r;
 }
 
 export async function assertBudget(userId: string) {
   const killed = await db.appSetting.findUnique({ where: { key: "ai_disabled" } });
   if (killed?.value === true) throw new AiUnavailableError("KILL_SWITCH");
-  if ((await spent({ since: dayStart() })) >= SPEND.globalDaily) throw new AiUnavailableError("GLOBAL_BUDGET");
-  if ((await spent({ userId, since: dayStart() })) >= SPEND.userDaily) throw new AiUnavailableError("USER_BUDGET");
-  if ((await spent({ userId, since: monthStart() })) >= SPEND.userMonthly) throw new AiUnavailableError("USER_BUDGET");
+  const [spent, limits] = await Promise.all([spentSoFar(userId), spendLimits()]);
+  const hit = blockedBy(spent, limits);
+  if (hit) throw new AiUnavailableError(hit.scope === "GLOBAL" ? "GLOBAL_BUDGET" : "USER_BUDGET", hit.period);
 }
 
 function defaultProvider(): AiProvider {
@@ -90,4 +96,15 @@ export async function runAiTask<T>(userId: string, req: StructuredRequest<T>, pr
       throw new AiUnavailableError("PROVIDER");
     }
   }
+}
+
+/** A person's share used in each window, 0–100, for the settings page. No dollar amounts are shown to users. */
+export async function allowanceFor(userId: string) {
+  const [s, l] = await Promise.all([spentSoFar(userId), spendLimits()]);
+  const pct = (used: number, limit: number) => (limit <= 0 ? 100 : Math.min(100, Math.round((used / limit) * 100)));
+  return [
+    { period: "day" as const, label: "Today", used: pct(s.userDay, l.userDaily) },
+    { period: "week" as const, label: "This week", used: pct(s.userWeek, l.userWeekly) },
+    { period: "month" as const, label: "This month", used: pct(s.userMonth, l.userMonthly) },
+  ];
 }

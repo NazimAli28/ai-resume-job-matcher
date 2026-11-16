@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { DefaultAccent, KillSwitch } from "@/components/admin/controls";
+import { DefaultAccent, KillSwitch, SpendLimits } from "@/components/admin/controls";
 import { SectionCard } from "@/components/profile-real/section-card";
 import { requireAdmin } from "@/server/admin/guard";
 import { adminOverview } from "@/server/admin/metrics";
-import { SPEND } from "@/server/ai/run";
+import { DEFAULT_LIMITS } from "@/server/ai/limits";
+import { spendLimits } from "@/server/ai/run";
 import { defaultAccent } from "@/server/settings/app-settings";
 
 const usd = (n: number) => `$${n.toFixed(n < 1 ? 4 : 2)}`;
@@ -27,7 +28,7 @@ function Stat({ label, value, href }: { label: string; value: string | number; h
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
-  const [m, accent] = await Promise.all([adminOverview(), defaultAccent()]);
+  const [m, accent, limits] = await Promise.all([adminOverview(), defaultAccent(), spendLimits()]);
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-[32px] font-bold leading-tight">Overview</h1>
@@ -45,10 +46,10 @@ export default async function AdminOverviewPage() {
         </dl>
       </SectionCard>
 
-      <SectionCard id="ai" title="AI cost and health" intro={`Guards: ${usd(SPEND.globalDaily)} a day overall, ${usd(SPEND.userDaily)} a day and ${usd(SPEND.userMonthly)} a month per person. Set the matching spend limit in the Anthropic console too.`}>
+      <SectionCard id="ai" title="AI cost and health" intro="Costs from the app's own log. Your Anthropic console shows the billed amount.">
         <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Stat label="Today" value={usd(m.ai.costDay)} />
-          <Stat label="This month" value={usd(m.ai.costMonth)} />
+          <Stat label="Today" value={`${usd(m.ai.costDay)} of ${usd(limits.globalDaily)}`} />
+          <Stat label="This month" value={`${usd(m.ai.costMonth)} of ${usd(limits.globalMonthly)}`} />
           <Stat label="Requests this month" value={m.ai.requestsMonth} />
           <Stat label="p95 time" value={m.ai.p95Ms === null ? "None yet" : `${Math.round(m.ai.p95Ms)} ms`} />
         </dl>
@@ -80,6 +81,7 @@ export default async function AdminOverviewPage() {
             </table>
           </div>
         )}
+        <SpendLimits value={limits} defaults={DEFAULT_LIMITS} />
         <KillSwitch disabled={m.ai.killed} />
       </SectionCard>
 

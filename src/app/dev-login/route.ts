@@ -20,7 +20,8 @@ export async function GET(request: Request) {
   await db.user.upsert({
     where: { id: DEV_USER_ID },
     create: { id: DEV_USER_ID, email: "dev-test@test.invalid", emailVerified: true, name: "Test User" },
-    update: {},
+    // A fresh sign-in, so the 7-day idle rule never sends the test account to "session expired".
+    update: { lastSeenAt: new Date() },
   });
   const hasTerms = await db.consentRecord.findFirst({ where: { userId: DEV_USER_ID, type: "TERMS", docVersion: LEGAL.terms } });
   if (!hasTerms) {

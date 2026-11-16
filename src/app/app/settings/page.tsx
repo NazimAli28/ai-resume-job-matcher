@@ -9,6 +9,8 @@ import { LocalTime } from "@/components/tracker/local-time";
 import { ButtonLink, buttonClass } from "@/components/ui/button";
 import { FEATURES } from "@/config/features";
 import { isRecentlySignedIn, requireUser } from "@/server/auth/user";
+import { resetsText } from "@/server/ai/limits";
+import { allowanceFor } from "@/server/ai/run";
 import { db } from "@/server/db";
 import { UNDO_DAYS } from "@/server/privacy/deletion";
 import { USAGE_LABELS } from "@/server/usage/limits";
@@ -31,8 +33,9 @@ const ACTIVITY: Record<string, string> = {
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ confirm?: string }> }) {
   const user = await requireUser();
   const sp = await searchParams;
-  const [usage, consents, activity, recent] = await Promise.all([
+  const [usage, allowance, consents, activity, recent] = await Promise.all([
     usageSummary(user),
+    allowanceFor(user.id),
     db.consentRecord.findMany({ where: { userId: user.id, type: { in: ["TRAINING_OPT_IN", "ANALYTICS_COOKIES", "MARKETING_EMAIL"] } }, orderBy: { createdAt: "desc" } }),
     db.auditLog.findMany({ where: { subjectUserId: user.id, action: { in: Object.keys(ACTIVITY) } }, orderBy: { createdAt: "desc" }, take: 12, select: { id: true, action: true, createdAt: true } }),
     isRecentlySignedIn(),
@@ -82,6 +85,26 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           ))}
         </ul>
         <p className="text-[13px] text-muted">Tracking applications is unlimited.</p>
+        <div className="flex flex-col gap-3 border-t border-rule pt-4">
+          <div>
+            <h3 className="text-sm font-semibold">AI allowance</h3>
+            <p className="text-[13px] text-muted">Every AI step (reading a job, suggestions, letters, interview questions and scoring) uses a little of it. Interviews use the most.</p>
+          </div>
+          <ul className="grid gap-3 sm:grid-cols-3">
+            {allowance.map((a) => (
+              <li key={a.period} className="flex flex-col gap-1.5 text-sm">
+                <span className="flex justify-between gap-2">
+                  <span className="font-semibold">{a.label}</span>
+                  <span className="tabular-nums text-muted">{a.used}% used</span>
+                </span>
+                <span className="h-2 rounded-full bg-sunken" role="progressbar" aria-label={`${a.label}: AI allowance used`} aria-valuenow={a.used} aria-valuemin={0} aria-valuemax={100}>
+                  <span className="block h-2 rounded-full" style={{ width: `${a.used}%`, background: a.used >= 100 ? "var(--warn)" : "var(--viz)" }} />
+                </span>
+                <span className="text-[12px] text-muted">{a.used >= 100 ? `Used up. Resets ${resetsText(a.period)}.` : `Resets ${resetsText(a.period)}.`}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </SectionCard>
 
       <SectionCard id="appearance" title="Appearance">

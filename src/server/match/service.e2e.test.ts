@@ -15,7 +15,8 @@ describe.skipIf(!hasEnv)("job matching end to end", async () => {
   if (!hasEnv) return;
   const { db } = await import("../db");
   const svc = await import("./service");
-  const { runAiTask, SPEND, AiUnavailableError } = await import("../ai/run");
+  const { runAiTask, AiUnavailableError } = await import("../ai/run");
+  const { DEFAULT_LIMITS } = await import("../ai/limits");
   const { extractJobRequest } = await import("../ai/tasks/extract-job");
   const user = randomUUID();
   const other = randomUUID();
@@ -144,7 +145,7 @@ describe.skipIf(!hasEnv)("job matching end to end", async () => {
   });
 
   it("stops at the user's budget before calling the AI", async () => {
-    await db.aiRequest.create({ data: { userId: other, task: "extract_job", promptVersion: "t", model: "t", costUsd: SPEND.userDaily, status: "OK" } });
+    await db.aiRequest.create({ data: { userId: other, task: "extract_job", promptVersion: "t", model: "t", costUsd: DEFAULT_LIMITS.userDaily, status: "OK" } });
     const calls = vi.fn();
     const p: AiProvider = { id: "mock", generateStructured: async () => { calls(); throw new Error("should not run"); } };
     await expect(runAiTask(other, extractJobRequest(JD), p)).rejects.toMatchObject({ reason: "USER_BUDGET" });

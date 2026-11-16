@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin, requireAdminRole } from "@/server/admin/guard";
+import { limitsSchema } from "@/server/ai/limits";
 import { audit } from "@/server/audit";
 import { isRecentlySignedIn } from "@/server/auth/user";
 import { db } from "@/server/db";
@@ -34,6 +35,16 @@ export async function setKillSwitchAction(disabled: unknown): Promise<Done> {
   if (typeof disabled !== "boolean") return STALE;
   return adminChange("ADMIN_AI_KILL_SWITCH", { disabled }, async (id) => {
     await setSetting("ai_disabled", disabled, id);
+  });
+}
+
+/** AI spend limits in USD. Applies to the next AI call; no deploy needed. */
+export async function setSpendLimitsAction(input: unknown): Promise<Done> {
+  const parsed = limitsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Please check the limits." };
+  const l = parsed.data;
+  return adminChange("ADMIN_AI_LIMITS", Object.fromEntries(Object.entries(l).map(([k, v]) => [k, String(v)])), async (id) => {
+    await db.appSetting.upsert({ where: { key: "ai_limits" }, create: { key: "ai_limits", value: l, updatedBy: id }, update: { value: l, updatedBy: id } });
   });
 }
 

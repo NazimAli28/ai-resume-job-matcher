@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { budgetMessage } from "@/server/ai/limits";
 import { AiUnavailableError } from "@/server/ai/run";
 import { requireUser } from "@/server/auth/user";
 import * as letters from "@/server/cover-letter/service";
@@ -42,7 +43,7 @@ export async function generateLetterAction(jobId: unknown, input: unknown): Prom
     return { ok: true };
   } catch (e) {
     if (e instanceof QuotaError) return { ok: false, error: "You've used this month's cover letters. They reset on the 1st." };
-    if (e instanceof AiUnavailableError) return { ok: false, error: AI_MESSAGE[e.reason] };
+    if (e instanceof AiUnavailableError) return { ok: false, error: budgetMessage(e, AI_MESSAGE[e.reason]) };
     if (e instanceof letters.LockedError) return { ok: false, error: "This letter was sent with an application, so it's kept as it was." };
     if (e instanceof letters.NotFoundError) return { ok: false, error: "That job or resume no longer exists." };
     await captureError(e, { source: "ACTION", route: "app/letter:generate", userId: user.id });

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { budgetMessage } from "@/server/ai/limits";
 import { AiUnavailableError } from "@/server/ai/run";
 import { requireUser } from "@/server/auth/user";
 import { captureError } from "@/server/observability/errors";
@@ -58,7 +59,7 @@ export async function generateAction(jobId: unknown, versionId: unknown, force: 
     return { ok: true };
   } catch (e) {
     if (e instanceof QuotaError) return { ok: false, error: "You've used this month's tailored resumes. They reset on the 1st." };
-    if (e instanceof AiUnavailableError) return { ok: false, error: AI_MESSAGE[e.reason] };
+    if (e instanceof AiUnavailableError) return { ok: false, error: budgetMessage(e, AI_MESSAGE[e.reason]) };
     if (e instanceof tailor.NotFoundError) return { ok: false, error: "That job or resume no longer exists." };
     await captureError(e, { source: "ACTION", route: "app/tailor:generate", userId: user.id });
     return { ok: false, error: "Something went wrong on our side. Please try again." };

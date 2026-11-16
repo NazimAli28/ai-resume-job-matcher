@@ -47,7 +47,7 @@ describe.skipIf(!hasEnv)("export, deletion and daily job end to end", async () =
     await db.resumeVersion.update({ where: { id: version.id }, data: { lockedAt: new Date(), state: "LOCKED" } });
     await db.consentRecord.create({ data: { userId: id, type: "TERMS", granted: true, docVersion: "t" } });
     await db.auditLog.create({ data: { action: "LOGIN", subjectUserId: id, ipPrefix: "1.2.3.0/24" } });
-    await db.aiRequest.create({ data: { userId: id, task: "t", promptVersion: "p", model: "m", status: "OK", costUsd: 0.01 } });
+    await db.aiRequest.create({ data: { userId: id, task: "t", promptVersion: "p", model: "m", status: "OK", costUsd: 0 } });
     await track(id, "SIGNED_IN");
   }
 
