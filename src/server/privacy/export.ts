@@ -17,6 +17,10 @@ data.json holds everything we store about you:
   resumeVersions  each resume version and its analysis
   jobs            job posts you added, their requirements and match results
   applications    your tracker: status history, interview rounds, people, notes
+  tailoring       resume suggestions for each job, and what you accepted
+  coverLetters    your cover letters and their earlier drafts
+  interviews      mock interview sessions: questions, your answers, scores and reports
+  interviewPrep   prep questions made for your jobs
   usage           what you used, month by month
   feedback        messages you sent us
   activity        security events on your account (sign-ins, exports, deletion requests)
@@ -27,7 +31,7 @@ ${skipped.length ? `\nNot included because the download would be too large (down
 /** Every row belonging to the user. Scoped by userId throughout, and read-only. */
 export async function collectUserData(userId: string) {
   const where = { userId };
-  const [account, consents, profile, uploads, resumeVersions, jobs, applications, usage, feedback, activity] = await Promise.all([
+  const [account, consents, profile, uploads, resumeVersions, jobs, applications, usage, feedback, activity, tailoring, coverLetters, interviews, interviewPrep] = await Promise.all([
     db.user.findUnique({ where: { id: userId } }),
     db.consentRecord.findMany({ where, orderBy: { createdAt: "asc" } }),
     db.profile.findUnique({ where, include: { skills: true, experiences: true, educations: true, projects: true, certifications: true, facts: true } }),
@@ -38,8 +42,12 @@ export async function collectUserData(userId: string) {
     db.usageLedger.findMany({ where, orderBy: { createdAt: "asc" } }),
     db.feedback.findMany({ where, orderBy: { createdAt: "asc" } }),
     db.auditLog.findMany({ where: { subjectUserId: userId }, orderBy: { createdAt: "asc" }, select: { action: true, createdAt: true, ipPrefix: true } }),
+    db.tailorSession.findMany({ where, orderBy: { createdAt: "asc" } }),
+    db.coverLetter.findMany({ where, orderBy: { createdAt: "asc" } }),
+    db.interviewSession.findMany({ where, orderBy: { createdAt: "asc" }, include: { questions: { orderBy: { order: "asc" }, include: { answers: { orderBy: { attempt: "asc" } } } } } }),
+    db.interviewPrep.findMany({ where, orderBy: { createdAt: "asc" } }),
   ]);
-  return { exportedAt: new Date().toISOString(), account, consents, profile, uploads, resumeVersions, jobs, applications, usage, feedback, activity };
+  return { exportedAt: new Date().toISOString(), account, consents, profile, uploads, resumeVersions, jobs, applications, tailoring, coverLetters, interviews, interviewPrep, usage, feedback, activity };
 }
 
 /** data.json, the README, then the original files one at a time. */

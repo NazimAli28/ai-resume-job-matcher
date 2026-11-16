@@ -8,12 +8,12 @@ import { FormAlert } from "@/components/auth/auth-ui";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/field";
 
-export function ResumePicker({ jobId, value, versions }: { jobId: string; value: string; versions: { id: string; label: string; name: string }[] }) {
+export function ResumePicker({ jobId, value, versions, basePath }: { jobId: string; value: string; versions: { id: string; label: string; name: string }[]; basePath?: string }) {
   const router = useRouter();
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor="pick-resume" className="text-sm font-semibold">Compared with</label>
-      <Select id="pick-resume" value={value} onChange={(e) => router.push(`/app/jobs/${jobId}?resume=${e.target.value}`)}>
+      <Select id="pick-resume" value={value} onChange={(e) => router.push(`${basePath ?? `/app/jobs/${jobId}`}?resume=${e.target.value}`)}>
         {versions.map((v) => (
           <option key={v.id} value={v.id}>
             {v.label} · {v.name}

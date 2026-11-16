@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Briefcase, ChevronsUpDown, FileText, KanbanSquare, LayoutDashboard, LogOut, Menu, Monitor, Moon, PanelLeftClose, PanelLeftOpen, Settings, Shield, Sun, User, X,
+  Briefcase, ChevronsUpDown, Mic, FileText, KanbanSquare, LayoutDashboard, LogOut, Menu, Monitor, Moon, PanelLeftClose, PanelLeftOpen, Settings, Shield, Sun, User, X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,6 +25,7 @@ const NAV = [
   { href: "/app/resumes", label: "Resumes", icon: FileText },
   { href: "/app/jobs", label: "Jobs", icon: Briefcase },
   { href: "/app/applications", label: "Tracker", icon: KanbanSquare },
+  { href: "/app/interviews", label: "Interviews", icon: Mic },
   { href: "/app/profile", label: "Profile", icon: User },
 ];
 

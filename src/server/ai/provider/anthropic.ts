@@ -36,7 +36,7 @@ export function createAnthropicProvider(apiKey: string, opts: { fetch?: typeof f
           messages: [{ role: "user", content: req.input }],
           output_config: { effort: req.effort ?? "low", format: zodOutputFormat(req.schema as never) },
         },
-        req.signal ? { signal: req.signal } : undefined,
+        { timeout: req.timeoutMs ?? 45_000, ...(req.signal ? { signal: req.signal } : {}) },
       );
       const usage = {
         inTok: res.usage.input_tokens + (res.usage.cache_creation_input_tokens ?? 0),

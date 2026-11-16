@@ -1,9 +1,9 @@
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   // Mirrors the one path alias in tsconfig.json.
-  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  resolve: { alias: { "@": resolve("src") } },
   test: {
     include: ["src/**/*.test.ts", "evals/**/*.test.ts"],
     environment: "node",

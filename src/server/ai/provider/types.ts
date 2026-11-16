@@ -12,7 +12,10 @@ export type TaskId =
   | "cover_letter"
   | "interview_blueprint"
   | "interview_turn"
-  | "evaluate_answer";
+  | "evaluate_answer"
+  | "check_answer"
+  | "model_answer"
+  | "interview_prep";
 
 export interface StructuredRequest<T> {
   task: TaskId;
@@ -25,6 +28,8 @@ export interface StructuredRequest<T> {
   /** How hard the model thinks. Current Claude models take this instead of a temperature. */
   effort?: "low" | "medium" | "high";
   maxTokens: number;
+  /** Longer for the bigger writing tasks; Vercel functions running them set maxDuration to match. */
+  timeoutMs?: number;
   signal?: AbortSignal;
 }
 

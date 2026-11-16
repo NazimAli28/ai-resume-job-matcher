@@ -1,4 +1,5 @@
 import "server-only";
+import { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
 import { captureError } from "../observability/errors";
 import { finalizeDueDeletions } from "../privacy/deletion";
@@ -29,6 +30,22 @@ async function pruneLogs(now: Date) {
   return { buckets: buckets.count, errors: errors.count, audits: audits.count, events: events.count };
 }
 
+/**
+ * Mock interviews: raw answer text goes after 12 months, scores and summaries stay (INT-050), and
+ * sessions left open for 7 days are closed (INT-015).
+ */
+async function interviewRetention(now: Date) {
+  const purged = await db.interviewAnswer.updateMany({ where: { textPurgedAt: null, text: { not: null }, createdAt: { lt: ago(365, now) } }, data: { text: null, check: Prisma.DbNull, textPurgedAt: now } });
+  // Evaluations hold quotes from the answer, so their quotes go too.
+  const withQuotes = await db.interviewAnswer.findMany({ where: { textPurgedAt: now, evaluation: { not: Prisma.DbNull } }, select: { id: true, evaluation: true }, take: 2000 });
+  for (const a of withQuotes) {
+    const ev = a.evaluation as { dims?: { quote: string | null }[] } | null;
+    if (ev?.dims) await db.interviewAnswer.update({ where: { id: a.id }, data: { evaluation: { ...ev, dims: ev.dims.map((d) => ({ ...d, quote: null })) } } });
+  }
+  const closed = await db.interviewSession.updateMany({ where: { status: "ACTIVE", updatedAt: { lt: ago(7, now) } }, data: { status: "ABANDONED" } });
+  return { purged: purged.count, closed: closed.count };
+}
+
 /** One failing job must not stop the others. */
 async function step<T>(name: string, run: () => Promise<T>): Promise<T | "failed"> {
   try {
@@ -45,5 +62,6 @@ export async function runDaily(now = new Date()) {
     deletions: await step("deletions", () => finalizeDueDeletions(now)),
     uploads: await step("uploads", () => sweepAbandonedUploads(now)),
     logs: await step("logs", () => pruneLogs(now)),
+    interviews: await step("interviews", () => interviewRetention(now)),
   };
 }

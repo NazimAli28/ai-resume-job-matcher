@@ -1,7 +1,10 @@
+import { Download } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FormAlert } from "@/components/auth/auth-ui";
 import { SectionCard } from "@/components/profile-real/section-card";
+import { ButtonLink, buttonClass } from "@/components/ui/button";
 import { FindingsReport, FoundSummary } from "@/components/resumes-real/report-sections";
 import { VersionActions } from "@/components/resumes-real/version-actions";
 import { RingScore } from "@/components/ui/charts";
@@ -13,12 +16,13 @@ export const metadata: Metadata = { title: "Resume report" };
 
 const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
-export default async function ResumeReportPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ResumeReportPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tailored?: string; export?: string }> }) {
   const user = await requireUser();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const v = await getVersion(user.id, id);
   if (!v) notFound();
+  const sp = await searchParams;
 
   const a = v.analyses[0];
   const findings = (a?.findings ?? []) as unknown as Finding[];
@@ -42,6 +46,17 @@ export default async function ResumeReportPage({ params }: { params: Promise<{ i
           <VersionActions versionId={v.id} canDownload={!!v.upload && !v.upload.fileDeletedAt} />
         </div>
       </div>
+
+      {sp.tailored === "1" && <FormAlert tone="ok">Saved as a new version. Your original is unchanged. Download it below, or check it against the job again.</FormAlert>}
+      {sp.export === "cnic" && <FormAlert>This resume contains a CNIC number. Remove it before downloading: a resume should never carry it.</FormAlert>}
+
+      <SectionCard id="download" title="Download a clean copy" intro="A single-column file with standard headings and real text, the layout applicant tracking systems read best.">
+        <div className="flex flex-wrap gap-2">
+          <a href={`/app/resumes/${v.id}/export?format=pdf`} className={buttonClass("primary")}><Download className="size-4" aria-hidden /> PDF</a>
+          <a href={`/app/resumes/${v.id}/export?format=docx`} className={buttonClass("secondary")}><Download className="size-4" aria-hidden /> Word (DOCX)</a>
+          {v.jobId && <ButtonLink href={`/app/jobs/${v.jobId}?resume=${v.id}`} variant="ghost">See the job match</ButtonLink>}
+        </div>
+      </SectionCard>
 
       {a && (
         <SectionCard id="scores" title="Scores" intro="Both are estimates calculated by code from the checks below. They don't predict hiring decisions.">

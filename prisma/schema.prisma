@@ -133,15 +133,19 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  consents ConsentRecord[]
-  tasks    BackgroundTask[]
-  profile  Profile?
-  uploads  ResumeUpload[]
-  versions ResumeVersion[]
-  jobs     Job[]
-  applications Application[]
-  usage    UsageLedger[]
-  feedback Feedback[]
+  consents       ConsentRecord[]
+  tasks          BackgroundTask[]
+  profile        Profile?
+  uploads        ResumeUpload[]
+  versions       ResumeVersion[]
+  jobs           Job[]
+  applications   Application[]
+  usage          UsageLedger[]
+  feedback       Feedback[]
+  tailorSessions TailorSession[]
+  coverLetters   CoverLetter[]
+  interviews     InterviewSession[]
+  interviewPreps InterviewPrep[]
 
   @@index([lastSeenAt])
   @@index([deletedAt])
@@ -258,26 +262,26 @@ model AppSetting {
 /// One per user. CNIC is never stored. DOB and father's name are optional PK conventions,
 /// never sent to AI, and dropped from exports for INTERNATIONAL targets.
 model Profile {
-  id                       String       @id @default(uuid(7))
-  userId                   String       @unique
-  targetMarket             TargetMarket @default(PK_LOCAL)
+  id                       String          @id @default(uuid(7))
+  userId                   String          @unique
+  targetMarket             TargetMarket    @default(PK_LOCAL)
   headline                 String?
   targetTitles             String[]
   city                     String?
-  country                  String?      @default("PK")
+  country                  String?         @default("PK")
   phone                    String?
   linkedinUrl              String?
   githubUrl                String?
   portfolioUrl             String?
   yearsExperience          Int?
-  includePhoto             Boolean      @default(false)
-  dateOfBirth              DateTime?    @db.Date
+  includePhoto             Boolean         @default(false)
+  dateOfBirth              DateTime?       @db.Date
   fatherName               String?
-  deleteOriginalAfterParse Boolean      @default(false)
+  deleteOriginalAfterParse Boolean         @default(false)
   onboardedAt              DateTime?
-  createdAt                DateTime     @default(now())
-  updatedAt                DateTime     @updatedAt
-  user                     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  user                     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills                   Skill[]
   experiences              Experience[]
   educations               Education[]
@@ -303,17 +307,17 @@ model Skill {
 }
 
 model Experience {
-  id        String    @id @default(uuid(7))
+  id        String         @id @default(uuid(7))
   userId    String
   profileId String
   title     String
   employer  String
   location  String?
-  startDate DateTime  @db.Date
-  endDate   DateTime? @db.Date
+  startDate DateTime       @db.Date
+  endDate   DateTime?      @db.Date
   bullets   String[]
-  sortOrder Int       @default(0)
-  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sortOrder Int            @default(0)
+  profile   Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
   facts     FactBankItem[]
 
   @@index([userId])
@@ -387,52 +391,55 @@ model FactBankItem {
 // ───────────────────────────── Resumes (Phase 3) ─────────────────────────────
 /// A file the user uploaded. Stored in the private "resumes" bucket at storageKey; originalName is display-only.
 model ResumeUpload {
-  id           String        @id @default(uuid(7))
-  userId       String
-  storageKey   String        @unique
-  originalName String
-  kind         FileKind?
-  sizeBytes    Int
-  sha256       String?
-  pageCount    Int?
-  status       UploadStatus  @default(PENDING)
-  rejectReason String?
+  id            String          @id @default(uuid(7))
+  userId        String
+  storageKey    String          @unique
+  originalName  String
+  kind          FileKind?
+  sizeBytes     Int
+  sha256        String?
+  pageCount     Int?
+  status        UploadStatus    @default(PENDING)
+  rejectReason  String?
   /// What a simple parser likely sees, ≤ 30k chars. Deleted with the account.
-  atsText      String?
+  atsText       String?
   /// Original file removed from storage (user setting or after rejection).
   fileDeletedAt DateTime?
-  createdAt    DateTime      @default(now())
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  versions     ResumeVersion[]
+  createdAt     DateTime        @default(now())
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions      ResumeVersion[]
 
   @@index([userId, createdAt])
 }
 
 /// An immutable-once-locked resume. content = ResumeDoc (src/server/resume/types.ts).
 model ResumeVersion {
-  id            String              @id @default(uuid(7))
-  userId        String
-  uploadId      String?
-  parentId      String?
-  jobId         String?
-  label         String
-  name          String
-  source        ResumeVersionSource
-  state         ResumeVersionState  @default(DRAFT)
-  targetMarket  TargetMarket
-  schemaVersion Int                 @default(1)
-  content       Json
-  contentHash   String
-  lockedAt      DateTime?
-  deletedAt     DateTime?
-  createdAt     DateTime            @default(now())
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  upload        ResumeUpload?       @relation(fields: [uploadId], references: [id], onDelete: SetNull)
-  parent        ResumeVersion?      @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
-  children      ResumeVersion[]     @relation("Lineage")
-  analyses      ResumeAnalysis[]
-  matches       JobMatch[]
-  applications  Application[]
+  id             String              @id @default(uuid(7))
+  userId         String
+  uploadId       String?
+  parentId       String?
+  jobId          String?
+  label          String
+  name           String
+  source         ResumeVersionSource
+  state          ResumeVersionState  @default(DRAFT)
+  targetMarket   TargetMarket
+  schemaVersion  Int                 @default(1)
+  content        Json
+  contentHash    String
+  lockedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime            @default(now())
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upload         ResumeUpload?       @relation(fields: [uploadId], references: [id], onDelete: SetNull)
+  parent         ResumeVersion?      @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children       ResumeVersion[]     @relation("Lineage")
+  analyses       ResumeAnalysis[]
+  matches        JobMatch[]
+  applications   Application[]
+  tailorSessions TailorSession[]
+  coverLetters   CoverLetter[]
+  interviews     InterviewSession[]
 
   @@index([userId, createdAt])
 }
@@ -503,7 +510,7 @@ enum AiRequestStatus {
 
 /// A pasted job post. rawText is an immutable snapshot; the URL is stored as a link and never fetched.
 model Job {
-  id               String           @id @default(uuid(7))
+  id               String             @id @default(uuid(7))
   userId           String
   title            String
   company          String?
@@ -511,44 +518,48 @@ model Job {
   workMode         String?
   seniorityHint    String?
   url              String?
-  source           JobSource        @default(OTHER)
+  source           JobSource          @default(OTHER)
   sourceDetail     String?
   rawText          String
   textHash         String
   responsibilities String[]
   /// The post contained text addressed to an AI. Treated as data, shown to the user as a notice.
-  injectionSuspect Boolean          @default(false)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  injectionSuspect Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   requirements     JobRequirement[]
   matches          JobMatch[]
   applications     Application[]
+  tailorSessions   TailorSession[]
+  coverLetters     CoverLetter[]
+  interviews       InterviewSession[]
+  interviewPreps   InterviewPrep[]
 
   @@index([userId, createdAt])
   @@index([userId, textHash])
 }
 
 model JobRequirement {
-  id           String          @id @default(uuid(7))
-  userId       String
-  jobId        String
-  text         String
+  id          String          @id @default(uuid(7))
+  userId      String
+  jobId       String
+  text        String
   /// Verbatim from the post; null only when the user added the requirement.
-  quote        String?
-  kind         RequirementKind
-  priority     RequirementType
+  quote       String?
+  kind        RequirementKind
+  priority    RequirementType
   /// A knockout: missing it caps the score.
-  hard         Boolean         @default(false)
+  hard        Boolean         @default(false)
   /// Short term to look for ("Docker"); normalized against the skill dictionary in code.
-  skillTerm    String?
-  years        Int?
-  degreeLevel  String?
-  userEdited   Boolean         @default(false)
-  override     MatchOverride?
-  overrideAt   DateTime?
-  sortOrder    Int             @default(0)
-  job          Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skillTerm   String?
+  years       Int?
+  degreeLevel String?
+  userEdited  Boolean         @default(false)
+  override    MatchOverride?
+  overrideAt  DateTime?
+  sortOrder   Int             @default(0)
+  job         Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([jobId, sortOrder])
@@ -614,40 +625,40 @@ enum ContactRole {
 /// One job the user is pursuing. Company, title and post text are copied from the Job, so the record survives
 /// deleting the job or adding it by hand. resumeVersionId is the exact version sent, and linking it locks that version.
 model Application {
-  id              String            @id @default(uuid(7))
-  userId          String
-  jobId           String?
-  resumeVersionId String?
-  company         String
-  title           String
-  location        String?
-  url             String?
-  source          JobSource         @default(OTHER)
-  sourceDetail    String?
-  jobText         String?
+  id                String                     @id @default(uuid(7))
+  userId            String
+  jobId             String?
+  resumeVersionId   String?
+  company           String
+  title             String
+  location          String?
+  url               String?
+  source            JobSource                  @default(OTHER)
+  sourceDetail      String?
+  jobText           String?
   /// JobMatch score when the job was linked (TRK-006). A snapshot: later changes to the match don't alter it.
-  matchScore      Int?
-  status          ApplicationStatus @default(SAVED)
-  appliedAt       DateTime?
-  lastActivityAt  DateTime          @default(now())
-  nextActionAt    DateTime?         @db.Date
-  nextActionNote  String?
-  deadline        DateTime?         @db.Date
-  salaryExpected  Int?
-  currency        String?           @default("PKR")
-  priority        Int               @default(2)
-  notes           String?
+  matchScore        Int?
+  status            ApplicationStatus          @default(SAVED)
+  appliedAt         DateTime?
+  lastActivityAt    DateTime                   @default(now())
+  nextActionAt      DateTime?                  @db.Date
+  nextActionNote    String?
+  deadline          DateTime?                  @db.Date
+  salaryExpected    Int?
+  currency          String?                    @default("PKR")
+  priority          Int                        @default(2)
+  notes             String?
   /// A follow-up or ghosting suggestion stays hidden until this time (TRK-044).
   nudgeSnoozedUntil DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job             Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  user              User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job               Job?                       @relation(fields: [jobId], references: [id], onDelete: SetNull)
   /// NoAction rather than Restrict: Postgres checks it at the end of the statement, so deleting an account still cascades.
-  resumeVersion   ResumeVersion?    @relation(fields: [resumeVersionId], references: [id], onDelete: NoAction)
-  history         ApplicationStatusHistory[]
-  rounds          InterviewRound[]
-  contacts        Contact[]
+  resumeVersion     ResumeVersion?             @relation(fields: [resumeVersionId], references: [id], onDelete: NoAction)
+  history           ApplicationStatusHistory[]
+  rounds            InterviewRound[]
+  contacts          Contact[]
 
   @@index([userId, status])
   @@index([userId, nextActionAt])
@@ -735,12 +746,12 @@ model ProductEvent {
 
 /// "Report an issue". Only what the user typed.
 model Feedback {
-  id        String   @id @default(uuid(7))
+  id        String    @id @default(uuid(7))
   userId    String
   message   String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   readAt    DateTime?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
 }
@@ -762,4 +773,176 @@ model AiRequest {
 
   @@index([userId, createdAt])
   @@index([createdAt])
+}
+
+// ───────────────────────────── Tailoring, cover letters (Phase 5) ─────────────────────────────
+
+/// Suggestions for one resume version against one job (TLR). Items live in JSON with their own status.
+model TailorSession {
+  id              String        @id @default(uuid(7))
+  userId          String
+  jobId           String
+  resumeVersionId String
+  inputsHash      String
+  promptVersion   String
+  suggestions     Json
+  stats           Json
+  resultVersionId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job             Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion   ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId, resumeVersionId])
+}
+
+enum CoverLetterLength {
+  SHORT
+  MEDIUM
+  LONG
+}
+
+enum CoverLetterTone {
+  PROFESSIONAL
+  FRIENDLY
+  CONFIDENT
+}
+
+model CoverLetter {
+  id              String            @id @default(uuid(7))
+  userId          String
+  jobId           String
+  resumeVersionId String?
+  length          CoverLetterLength @default(MEDIUM)
+  tone            CoverLetterTone   @default(PROFESSIONAL)
+  recipient       String?
+  notes           String?
+  text            String
+  /// Up to 5 earlier drafts, newest first: { text, savedAt }.
+  history         Json              @default("[]")
+  droppedCount    Int               @default(0)
+  lockedAt        DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job             Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion   ResumeVersion?    @relation(fields: [resumeVersionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, jobId])
+}
+
+// ───────────────────────────── Mock interviews (Phase 7) ─────────────────────────────
+
+enum InterviewType {
+  BEHAVIORAL
+  TECHNICAL
+  MIXED
+  HR
+}
+
+enum InterviewDifficulty {
+  EASY
+  STANDARD
+  HARD
+}
+
+enum InterviewPersona {
+  FRIENDLY_RECRUITER
+  HIRING_MANAGER
+  TECHNICAL_PANEL
+  TOUGH_BUT_FAIR
+}
+
+enum InterviewStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+model InterviewSession {
+  id              String              @id @default(uuid(7))
+  userId          String
+  jobId           String?
+  resumeVersionId String?
+  targetRole      String?
+  type            InterviewType
+  questionCount   Int
+  difficulty      InterviewDifficulty
+  persona         InterviewPersona
+  timerSec        Int                 @default(120)
+  status          InterviewStatus     @default(ACTIVE)
+  blueprint       Json
+  followUpsUsed   Int                 @default(0)
+  /// Counted against the monthly quota once the first answer is evaluated (INT-018).
+  counted         Boolean             @default(false)
+  overall         Int?
+  report          Json?
+  completedAt     DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job             Job?                @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  resumeVersion   ResumeVersion?      @relation(fields: [resumeVersionId], references: [id], onDelete: SetNull)
+  questions       InterviewQuestion[]
+
+  @@index([userId, createdAt])
+  @@index([status, updatedAt])
+}
+
+model InterviewQuestion {
+  id         String            @id @default(uuid(7))
+  sessionId  String
+  userId     String
+  order      Int
+  /// Follow-ups point at the question they follow.
+  parentId   String?
+  kind       String
+  competency String
+  text       String
+  keyPoints  Json
+  whyAsked   String?
+  reqIds     String[]
+  createdAt  DateTime          @default(now())
+  session    InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answers    InterviewAnswer[]
+
+  @@index([sessionId, order])
+}
+
+model InterviewAnswer {
+  id           String            @id @default(uuid(7))
+  questionId   String
+  userId       String
+  attempt      Int               @default(1)
+  /// Raw answer text; purged after 12 months (INT-050).
+  text         String?
+  skipped      Boolean           @default(false)
+  hintUsed     Boolean           @default(false)
+  durationSec  Int?
+  check        Json?
+  evaluation   Json?
+  score        Int?
+  modelAnswer  Json?
+  textPurgedAt DateTime?
+  createdAt    DateTime          @default(now())
+  question     InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, attempt])
+  @@index([userId, createdAt])
+}
+
+/// Question bank for one job (INT-001).
+model InterviewPrep {
+  id              String   @id @default(uuid(7))
+  userId          String
+  jobId           String
+  resumeVersionId String?
+  questions       Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
 }

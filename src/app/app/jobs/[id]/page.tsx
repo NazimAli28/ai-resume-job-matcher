@@ -54,10 +54,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             )}
           </div>
           <div className="flex flex-wrap items-start gap-2">
+            {resumeVersionId && <ButtonLink href={`/app/jobs/${job.id}/tailor?resume=${resumeVersionId}`} size="sm" variant="primary">Improve my resume</ButtonLink>}
+            {resumeVersionId && <ButtonLink href={`/app/jobs/${job.id}/cover-letter`} size="sm">Cover letter</ButtonLink>}
+            {resumeVersionId && <ButtonLink href={`/app/jobs/${job.id}/interview-prep`} size="sm">Interview prep</ButtonLink>}
+            {resumeVersionId && <ButtonLink href={`/app/interviews/new?job=${job.id}`} size="sm">Practice interview</ButtonLink>}
             {tracked ? (
               <ButtonLink href={`/app/applications/${tracked.id}`} size="sm">Open in tracker</ButtonLink>
             ) : (
-              <ButtonLink href={`/app/applications/new?job=${job.id}${resumeVersionId ? `&resume=${resumeVersionId}` : ""}`} size="sm" variant="primary">Track this application</ButtonLink>
+              <ButtonLink href={`/app/applications/new?job=${job.id}${resumeVersionId ? `&resume=${resumeVersionId}` : ""}`} size="sm">Track this application</ButtonLink>
             )}
             <DeleteJob jobId={job.id} />
           </div>
