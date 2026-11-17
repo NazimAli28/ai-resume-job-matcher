@@ -5,6 +5,7 @@ import { requireAdmin } from "@/server/admin/guard";
 import { adminOverview } from "@/server/admin/metrics";
 import { DEFAULT_LIMITS } from "@/server/ai/limits";
 import { spendLimits } from "@/server/ai/run";
+import { trainingStats } from "@/server/training/service";
 import { defaultAccent } from "@/server/settings/app-settings";
 
 const usd = (n: number) => `$${n.toFixed(n < 1 ? 4 : 2)}`;
@@ -28,7 +29,11 @@ function Stat({ label, value, href }: { label: string; value: string | number; h
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
-  const [m, accent, limits] = await Promise.all([adminOverview(), defaultAccent(), spendLimits()]);
+  const [m, accent, limits, ex] = await Promise.all([adminOverview(), defaultAccent(), spendLimits(), trainingStats()]);
+  const answered = ex.yes + ex.no;
+  const pct = (n: number) => (answered ? `${Math.round((n / answered) * 100)}%` : "–");
+  const tasks = [...new Set(ex.byTask.map((r) => r.task))];
+  const cell = (task: string, outcome: string) => ex.byTask.find((r) => r.task === task && r.outcome === outcome)?.count ?? 0;
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-[32px] font-bold leading-tight">Overview</h1>
@@ -83,6 +88,39 @@ export default async function AdminOverviewPage() {
         )}
         <SpendLimits value={limits} defaults={DEFAULT_LIMITS} />
         <KillSwitch disabled={m.ai.killed} />
+      </SectionCard>
+
+      <SectionCard id="examples" title="AI improvement examples" intro="Counts only. Examples are de-identified, kept only for people who said Yes, and never shown here.">
+        <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Stat label="Said Yes" value={`${ex.yes} (${pct(ex.yes)})`} />
+          <Stat label="Said No" value={`${ex.no} (${pct(ex.no)})`} />
+          <Stat label="Not answered yet" value={Math.max(0, m.users.total - answered)} />
+          <Stat label="Examples kept" value={ex.byTask.reduce((t, r) => t + r.count, 0)} />
+        </dl>
+        {tasks.length > 0 && (
+          <div className="overflow-x-auto" tabIndex={0} aria-label="Examples by task and what people did">
+            <table className="w-full min-w-[36rem] text-sm">
+              <thead>
+                <tr className="border-b border-rule text-left text-muted">
+                  <th scope="col" className="py-2 pr-3 font-semibold">Task</th>
+                  {["Accepted", "Edited", "Rejected", "Left as is"].map((h) => (
+                    <th key={h} scope="col" className="py-2 pr-3 text-right font-semibold">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((t) => (
+                  <tr key={t} className="border-b border-rule last:border-0">
+                    <th scope="row" className="py-2 pr-3 text-left font-semibold">{t}</th>
+                    {(["ACCEPTED", "EDITED", "REJECTED", "IGNORED"] as const).map((o) => (
+                      <td key={o} className="py-2 pr-3 text-right tabular-nums">{cell(t, o)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard id="funnel" title="Funnel" intro="People who ever did each step. Counts only, from those who haven't opted out.">

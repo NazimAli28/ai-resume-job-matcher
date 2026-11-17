@@ -26,7 +26,7 @@ const FAQ = [
   },
   {
     q: "Is my data used to train AI?",
-    a: "No, unless you opt in. The setting is off by default and you can turn it off again any time. Before any text reaches an AI model, personal details such as your CNIC, phone, email and address are masked.",
+    a: "No. We don't train any AI model. We ask you once whether we may keep de-identified examples (no name, email, phone or CNIC) to test and improve our AI. Nothing is kept unless you say Yes, and switching it off in Settings deletes them. Before any text reaches an AI model, personal details such as your CNIC, phone, email and address are masked.",
   },
   {
     q: "Does it work for Pakistani and international resumes?",

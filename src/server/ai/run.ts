@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "../db";
 import { env } from "../env";
 import { captureError } from "../observability/errors";
+import { collect } from "../training/service";
 import { createAnthropicProvider } from "./provider/anthropic";
 import { devFakeProvider } from "./provider/dev-fake";
 import { blockedBy, parseLimits, windowStarts, type Period, type Spent, type SpendLimits } from "./limits";
@@ -57,7 +58,7 @@ function defaultProvider(): AiProvider {
  * Every AI call goes through here: budget check, one retry on unusable output (05 §6), and a
  * metadata-only AiRequest row. Callers pass `provider` only in tests.
  */
-export async function runAiTask<T>(userId: string, req: StructuredRequest<T>, provider?: AiProvider): Promise<StructuredResult<T>> {
+export async function runAiTask<T>(userId: string, req: StructuredRequest<T>, provider?: AiProvider): Promise<StructuredResult<T> & { exampleId: string | null }> {
   const p = provider ?? defaultProvider();
   await assertBudget(userId);
 
@@ -81,7 +82,9 @@ export async function runAiTask<T>(userId: string, req: StructuredRequest<T>, pr
     try {
       const out = await p.generateStructured(req);
       await log({ model: out.model, usage: out.usage, costUsd: out.costUsd, latencyMs: out.latencyMs, status: "OK" });
-      return out;
+      // De-identified copy for AI improvement, only for people who said Yes (never fails the task).
+      const exampleId = await collect(userId, { task: req.task, promptVersion: req.promptVersion, model: out.model, input: req.input, output: out.data });
+      return { ...out, exampleId };
     } catch (e) {
       if (e instanceof AiRefusedError) {
         await log({ usage: e.usage, costUsd: e.costUsd, status: "REFUSED" });

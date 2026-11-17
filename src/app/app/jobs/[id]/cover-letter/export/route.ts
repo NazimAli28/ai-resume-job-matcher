@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { placeholdersIn } from "@/server/ai/guard/facts";
 import { requireUser } from "@/server/auth/user";
 import { letterParagraphs } from "@/server/cover-letter/core";
-import { getLetter } from "@/server/cover-letter/service";
+import { getLetter, markExported } from "@/server/cover-letter/service";
 import { db } from "@/server/db";
 import { contactLine, letterBlocks } from "@/server/export/blocks";
 import { renderDocx } from "@/server/export/docx";
@@ -43,6 +43,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     });
     const meta = { title: "Cover letter", author: doc?.basics.name };
     const body = format === "pdf" ? renderPdf(blocks, meta) : await renderDocx(blocks, meta);
+    await markExported(user.id, letter.id);
     return new Response(new Uint8Array(body), {
       headers: {
         "Content-Type": format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

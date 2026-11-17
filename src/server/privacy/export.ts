@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "../db";
+import { examplesFor } from "../training/service";
 import { supabaseAdmin } from "../supabase/admin";
 import type { ZipInput } from "./zip";
 
@@ -21,6 +22,7 @@ data.json holds everything we store about you:
   coverLetters    your cover letters and their earlier drafts
   interviews      mock interview sessions: questions, your answers, scores and reports
   interviewPrep   prep questions made for your jobs
+  aiExamples      de-identified examples kept to improve our AI (only if you said Yes; names and contact details removed)
   usage           what you used, month by month
   feedback        messages you sent us
   activity        security events on your account (sign-ins, exports, deletion requests)
@@ -31,7 +33,7 @@ ${skipped.length ? `\nNot included because the download would be too large (down
 /** Every row belonging to the user. Scoped by userId throughout, and read-only. */
 export async function collectUserData(userId: string) {
   const where = { userId };
-  const [account, consents, profile, uploads, resumeVersions, jobs, applications, usage, feedback, activity, tailoring, coverLetters, interviews, interviewPrep] = await Promise.all([
+  const [account, consents, profile, uploads, resumeVersions, jobs, applications, usage, feedback, activity, tailoring, coverLetters, interviews, interviewPrep, aiExamples] = await Promise.all([
     db.user.findUnique({ where: { id: userId } }),
     db.consentRecord.findMany({ where, orderBy: { createdAt: "asc" } }),
     db.profile.findUnique({ where, include: { skills: true, experiences: true, educations: true, projects: true, certifications: true, facts: true } }),
@@ -46,8 +48,9 @@ export async function collectUserData(userId: string) {
     db.coverLetter.findMany({ where, orderBy: { createdAt: "asc" } }),
     db.interviewSession.findMany({ where, orderBy: { createdAt: "asc" }, include: { questions: { orderBy: { order: "asc" }, include: { answers: { orderBy: { attempt: "asc" } } } } } }),
     db.interviewPrep.findMany({ where, orderBy: { createdAt: "asc" } }),
+    examplesFor(userId),
   ]);
-  return { exportedAt: new Date().toISOString(), account, consents, profile, uploads, resumeVersions, jobs, applications, tailoring, coverLetters, interviews, interviewPrep, usage, feedback, activity };
+  return { exportedAt: new Date().toISOString(), account, consents, profile, uploads, resumeVersions, jobs, applications, tailoring, coverLetters, interviews, interviewPrep, aiExamples, usage, feedback, activity };
 }
 
 /** data.json, the README, then the original files one at a time. */

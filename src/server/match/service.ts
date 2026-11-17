@@ -9,6 +9,7 @@ import { extractJobRequest, verifyExtraction } from "../ai/tasks/extract-job";
 import { db } from "../db";
 import { ensureProfile, getFullProfile } from "../profile/service";
 import type { ResumeDoc } from "../resume/types";
+import { attach, recordOutcome } from "../training/service";
 import { buildMatchProfile, computeMatch, ENGINE_VERSION, type MatchRequirement } from "./engine";
 import type { newJobSchema, requirementSchema } from "./schemas";
 
@@ -65,8 +66,15 @@ export async function createJob(userId: string, input: z.output<typeof newJobSch
       },
     },
   });
+  await attach(out.exampleId, "job", job.id);
   await recompute(userId, job.id, version.id);
   return job;
+}
+
+/** The person corrected what the AI read from the post: the corrected list is the useful signal. */
+async function noteJobEdit(userId: string, jobId: string) {
+  const reqs = await db.jobRequirement.findMany({ where: { jobId, userId }, orderBy: { sortOrder: "asc" }, select: { text: true, priority: true } });
+  await recordOutcome(userId, "job", jobId, { outcome: "EDITED", edited: { requirements: reqs } });
 }
 
 export async function listJobs(userId: string) {
@@ -197,6 +205,7 @@ export async function updateRequirement(userId: string, requirementId: string, d
     where: { id: r.id },
     data: { text: data.text, priority: data.priority, userEdited: true, ...(textChanged && r.skillTerm ? { skillTerm: data.text.slice(0, 60) } : {}) },
   });
+  await noteJobEdit(userId, r.jobId);
   return r.jobId;
 }
 
@@ -207,12 +216,14 @@ export async function addRequirement(userId: string, jobId: string, data: z.outp
   await db.jobRequirement.create({
     data: { userId, jobId, text: data.text, priority: data.priority, kind: "SKILL", skillTerm: data.text.slice(0, 60), userEdited: true, sortOrder: job._count.requirements },
   });
+  await noteJobEdit(userId, job.id);
   return job.id;
 }
 
 export async function deleteRequirement(userId: string, requirementId: string) {
   const r = await ownedRequirement(userId, requirementId);
   await db.jobRequirement.delete({ where: { id: r.id } });
+  await noteJobEdit(userId, r.jobId);
   return r.jobId;
 }
 

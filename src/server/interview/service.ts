@@ -10,6 +10,7 @@ import type { MatchItem } from "../match/engine";
 import { recompute } from "../match/service";
 import type { ResumeDoc } from "../resume/types";
 import { buildEvidence, type Evidence } from "../tailor/core";
+import { attach, recordOutcome } from "../training/service";
 import { assertQuota, recordUsage } from "../usage/service";
 import {
   coverage,
@@ -85,6 +86,7 @@ export async function createSession(userId: string, cfg: SessionConfig, provider
   const evText = new Map(evidence.map((e) => [e.id, e.text]));
 
   let written: { slot: number; question: string; competency: string; keyPoints: string[]; whyAsked: string }[] = [];
+  let exampleId: string | null = null;
   try {
     const out = await runAiTask(
       userId,
@@ -99,13 +101,14 @@ export async function createSession(userId: string, cfg: SessionConfig, provider
       provider,
     );
     written = out.data.questions;
+    exampleId = out.exampleId;
   } catch (e) {
     if (!(e instanceof AiUnavailableError)) throw e;
     if (e.reason === "USER_BUDGET" || e.reason === "GLOBAL_BUDGET" || e.reason === "KILL_SWITCH" || e.reason === "NOT_CONFIGURED") throw e;
   }
 
   const cov = coverage(slots, reqs);
-  return db.interviewSession.create({
+  const created = await db.interviewSession.create({
     data: {
       userId,
       jobId: job?.id ?? null,
@@ -134,6 +137,8 @@ export async function createSession(userId: string, cfg: SessionConfig, provider
       },
     },
   });
+  await attach(exampleId, "interview", created.id);
+  return created;
 }
 
 export async function getSession(userId: string, id: string) {
@@ -227,7 +232,7 @@ export interface Evaluation {
   error?: boolean;
 }
 
-async function evaluate(userId: string, s: FullSession, main: FullQuestion, answer: string, provider?: AiProvider): Promise<{ evaluation: Evaluation; score: number | null; check: AnswerCheck | null }> {
+async function evaluate(userId: string, s: FullSession, main: FullQuestion, answer: string, provider?: AiProvider): Promise<{ evaluation: Evaluation; score: number | null; check: AnswerCheck | null; exampleId?: string | null }> {
   const kind = main.kind as QKind;
   const keyPoints = (main.keyPoints as string[]) ?? [];
   const followUps = s.questions.filter((x) => x.parentId === main.id).length;
@@ -235,7 +240,7 @@ async function evaluate(userId: string, s: FullSession, main: FullQuestion, answ
   try {
     const out = await runAiTask(userId, evaluateRequest({ question: main.text, kind, keyPoints, dims: rubricFor(kind).filter((d) => d.byAi).map((d) => d.dim), answer: withoutInjection(answer) }), provider);
     const dims = verifyDims(out.data.dims.map((d) => ({ dim: d.dim, score: d.score, quote: d.quote.trim() || null })), answer, kind, check);
-    return { evaluation: { dims, labels: [...new Set(out.data.labels)].slice(0, 5), whatWentWrong: out.data.whatWentWrong.slice(0, 600), oneLineFix: out.data.oneLineFix.slice(0, 240), followUps }, score: questionScore(kind, dims), check };
+    return { evaluation: { dims, labels: [...new Set(out.data.labels)].slice(0, 5), whatWentWrong: out.data.whatWentWrong.slice(0, 600), oneLineFix: out.data.oneLineFix.slice(0, 240), followUps }, score: questionScore(kind, dims), check, exampleId: out.exampleId };
   } catch (e) {
     if (!(e instanceof AiUnavailableError)) throw e;
     // Without the AI, only the code-scored dimensions remain; the report says so.
@@ -260,13 +265,17 @@ export async function finish(userId: string, sessionId: string, provider?: AiPro
   }
   for (const { q, r } of results) {
     await db.interviewAnswer.update({ where: { id: q.answers[0].id }, data: { evaluation: r.evaluation as unknown as Prisma.InputJsonValue, score: r.score, check: r.check as unknown as Prisma.InputJsonValue } });
+    await attach(r.exampleId, "iv-question", q.id);
   }
   const anyScored = results.some((x) => x.r.score !== null);
   if (anyScored && !s.counted) {
     await recordUsage(userId, "MOCK_INTERVIEW");
     await db.interviewSession.update({ where: { id: s.id }, data: { counted: true } });
   }
-  return buildReport(userId, sessionId);
+  const done = await buildReport(userId, sessionId);
+  const report = done.report as { answered?: number; skipped?: number } | null;
+  await recordOutcome(userId, "interview", s.id, { signals: { answered: report?.answered ?? 0, skipped: report?.skipped ?? 0 } });
+  return done;
 }
 
 export async function buildReport(userId: string, sessionId: string) {
@@ -300,6 +309,9 @@ export async function retry(userId: string, sessionId: string, questionId: strin
   if (!q) throw new NotFoundError();
   if (q.answers.length >= 5) throw new StateError("too_many_attempts");
   const r = await evaluate(userId, s, q, text, provider);
+  // A retry is a strong signal: the person thought they could answer better.
+  await attach(r.exampleId, "iv-question", q.id);
+  await recordOutcome(userId, "iv-question", q.id, { signals: { retry: true, previousScore: q.answers.at(-1)?.score ?? null, newScore: r.score } });
   return db.interviewAnswer.create({
     data: { questionId: q.id, userId, attempt: Math.max(...q.answers.map((a) => a.attempt), 0) + 1, text, evaluation: r.evaluation as unknown as Prisma.InputJsonValue, score: r.score, check: r.check as unknown as Prisma.InputJsonValue },
   });
@@ -322,6 +334,7 @@ export async function modelAnswer(userId: string, sessionId: string, questionId:
   const { evidence } = await context(userId, s.resumeVersionId);
   const byId = new Map(evidence.map((e) => [e.id, e]));
   const out = await runAiTask(userId, modelAnswerRequest({ question: q.text, kind: q.kind, keyPoints: (q.keyPoints as string[]) ?? [], evidence: evidence.slice(0, 80) }), provider);
+  await attach(out.exampleId, "iv-model", q.id);
   const sentences = out.data.sentences.slice(0, 14).map((x) => {
     const text = x.text.replace(/\s+/g, " ").trim();
     if (x.isPlaceholder || /\[[^\]]+\]/.test(text)) return { text, isPlaceholder: true, basedOn: [] };
@@ -392,11 +405,13 @@ export async function generatePrep(userId: string, jobId: string, versionId: str
       gap: gap && gap.cls === "MISSING" ? gap.text : null,
     };
   });
-  return db.interviewPrep.upsert({
+  const prep = await db.interviewPrep.upsert({
     where: { userId_jobId: { userId, jobId } },
     create: { userId, jobId, resumeVersionId: version?.id ?? null, questions: questions as unknown as Prisma.InputJsonValue },
     update: { resumeVersionId: version?.id ?? null, questions: questions as unknown as Prisma.InputJsonValue },
   });
+  await attach(out.exampleId, "prep", prep.id);
+  return prep;
 }
 
 export const isAnswerTooShort = (t: string) => wordCount(t) < 8;

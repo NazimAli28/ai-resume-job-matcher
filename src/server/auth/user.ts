@@ -6,6 +6,7 @@ import { cache } from "react";
 import { LEGAL } from "@/config/legal";
 import type { User } from "@/generated/prisma/client";
 import { db } from "../db";
+import { hasAnswered } from "../training/service";
 import { DEV_LOGIN_COOKIE, DEV_USER_ID, isDevLoginAllowed } from "./dev-login";
 import { supabaseServer } from "../supabase/server";
 
@@ -75,7 +76,7 @@ export async function isRecentlySignedIn(): Promise<boolean> {
  * visitor is signed out, deleted, blocked, or hasn't accepted the current terms.
  * allowBlocked is only for a blocked person's own export and delete (ADM-006).
  */
-export const requireUser = cache(async (opts: { allowMissingConsent?: boolean; allowBlocked?: boolean } = {}): Promise<User> => {
+export const requireUser = cache(async (opts: { allowMissingConsent?: boolean; allowBlocked?: boolean; allowMissingAiChoice?: boolean } = {}): Promise<User> => {
   const session = await currentSession();
   if (!session) redirect("/login");
   const { id } = session;
@@ -92,6 +93,8 @@ export const requireUser = cache(async (opts: { allowMissingConsent?: boolean; a
   // Session limits (PRD §5b): 7 days idle, 30 days from sign-in. The route clears the cookies.
   if (isSessionExpired(user.lastSeenAt, session.authAt)) redirect("/auth/expired");
   if (!opts.allowMissingConsent && !(await hasCurrentConsent(user.id))) redirect("/consent");
+  // Everyone answers the AI-improvement question once (Yes or No) before using the app.
+  if (!opts.allowMissingConsent && !opts.allowMissingAiChoice && !(await hasAnswered(user.id))) redirect("/ai-help");
 
   // Activity marker for idle-session and inactivity-purge rules; written at most every 5 minutes.
   if (Date.now() - user.lastSeenAt.getTime() > 5 * 60 * 1000) {

@@ -3,13 +3,15 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
+import { parseAiAnswer } from "@/config/ai-help";
 import { FEATURES } from "@/config/features";
+import { LEGAL } from "@/config/legal";
 import { audit } from "@/server/audit";
 import { isBreachedPassword } from "@/server/auth/breached";
 import { recordSignupConsent } from "@/server/auth/consent";
 import { DEV_LOGIN_COOKIE } from "@/server/auth/dev-login";
 import { newPasswordSchema, resetRequestSchema, safeNext, signInSchema, signUpSchema } from "@/server/auth/schemas";
-import { isRecentlySignedIn, syncUser } from "@/server/auth/user";
+import { isRecentlySignedIn, requireUser, syncUser } from "@/server/auth/user";
 import { db } from "@/server/db";
 import { env } from "@/server/env";
 import { track } from "@/server/events";
@@ -17,6 +19,7 @@ import { clientIp, ipPrefix, pepperHash } from "@/server/http/request";
 import { captureError } from "@/server/observability/errors";
 import { rateLimit } from "@/server/ratelimit";
 import { supabaseServer } from "@/server/supabase/server";
+import { deleteExamplesFor } from "@/server/training/service";
 
 export type FormState = { error?: string; fieldErrors?: Record<string, string>; ok?: string } | undefined;
 
@@ -143,6 +146,19 @@ export async function acceptCurrentTerms(form: FormData): Promise<void> {
   await syncUser(data.user);
   await recordSignupConsent(data.user.id, form.get("marketing") === "on", ipPrefix(await clientIp()));
   redirect(safeNext(form.get("next")?.toString()));
+}
+
+/** The one-time AI-improvement question. Only an explicit Yes or No is accepted; anything else asks again. */
+export async function answerAiHelp(form: FormData): Promise<void> {
+  const user = await requireUser({ allowMissingAiChoice: true });
+  const next = safeNext(form.get("next")?.toString());
+  const granted = parseAiAnswer(form.get("answer"));
+  if (granted === null) redirect(`/ai-help?error=required&next=${encodeURIComponent(next)}`);
+  const prefix = ipPrefix(await clientIp());
+  await db.consentRecord.create({ data: { userId: user.id, type: "TRAINING_OPT_IN", granted, docVersion: LEGAL.privacy, ipPrefix: prefix } });
+  await audit("CONSENT_CHANGED", { subjectUserId: user.id, ipPrefix: prefix, metadata: { type: "TRAINING_OPT_IN", granted, via: "ai-help" } });
+  if (!granted) await deleteExamplesFor(user.id);
+  redirect(next);
 }
 
 export async function signOut(form: FormData): Promise<void> {

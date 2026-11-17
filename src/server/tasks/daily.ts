@@ -4,6 +4,7 @@ import { db } from "../db";
 import { captureError } from "../observability/errors";
 import { finalizeDueDeletions } from "../privacy/deletion";
 import { supabaseAdmin } from "../supabase/admin";
+import { purgeOldExamples } from "../training/service";
 
 const DAY = 86_400_000;
 const ago = (days: number, now: Date) => new Date(now.getTime() - days * DAY);
@@ -63,5 +64,6 @@ export async function runDaily(now = new Date()) {
     uploads: await step("uploads", () => sweepAbandonedUploads(now)),
     logs: await step("logs", () => pruneLogs(now)),
     interviews: await step("interviews", () => interviewRetention(now)),
+    aiExamples: await step("aiExamples", () => purgeOldExamples(now)),
   };
 }

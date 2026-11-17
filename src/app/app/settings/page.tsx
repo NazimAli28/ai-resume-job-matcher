@@ -7,6 +7,7 @@ import { Appearance } from "@/components/settings/appearance";
 import { ConfirmIdentity, ConsentToggle, DeleteAccount, FeedbackForm } from "@/components/settings-real/controls";
 import { LocalTime } from "@/components/tracker/local-time";
 import { ButtonLink, buttonClass } from "@/components/ui/button";
+import { AI_HELP } from "@/config/ai-help";
 import { FEATURES } from "@/config/features";
 import { isRecentlySignedIn, requireUser } from "@/server/auth/user";
 import { resetsText } from "@/server/ai/limits";
@@ -114,7 +115,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <SectionCard id="privacy" title="Privacy choices" intro="Each choice is saved with its date, and you can change it any time.">
         <div className="flex flex-col gap-2">
           <ConsentToggle type="ANALYTICS_COOKIES" checked={latest("ANALYTICS_COOKIES") !== false} label="Count which features I use" hint="On our own servers, as plain counts. Never your content, and no third-party tracking." />
-          <ConsentToggle type="TRAINING_OPT_IN" checked={latest("TRAINING_OPT_IN") === true} label="Allow de-identified data to improve our AI" hint="Off unless you turn it on. We don't currently train any model." />
+          <ConsentToggle type="TRAINING_OPT_IN" checked={latest("TRAINING_OPT_IN") === true} label={AI_HELP.title.replace("?", "")} hint={`${AI_HELP.body} We don't train any AI model yet.`} />
           <ConsentToggle type="MARKETING_EMAIL" checked={latest("MARKETING_EMAIL") === true} label="Send me product tips by email" hint="Off unless you turn it on. Account and security emails are always sent." />
         </div>
       </SectionCard>

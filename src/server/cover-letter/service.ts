@@ -6,6 +6,7 @@ import { coverLetterRequest } from "../ai/tasks/cover-letter";
 import { db } from "../db";
 import type { ResumeDoc } from "../resume/types";
 import { buildEvidence } from "../tailor/core";
+import { attach, recordOutcome } from "../training/service";
 import { assertQuota, recordUsage } from "../usage/service";
 import { checkLetter, letterText } from "./core";
 
@@ -65,6 +66,7 @@ export async function generate(userId: string, jobId: string, opts: LetterOption
     letter = await db.coverLetter.create({ data: { userId, jobId, ...fields } });
   }
   if (chargeable) await recordUsage(userId, "COVER_LETTER");
+  await attach(out.exampleId, "letter", letter.id);
   return letter;
 }
 
@@ -78,8 +80,13 @@ async function owned(userId: string, id: string) {
 /** Autosave of the user's own edits. Their words are theirs; only the length is limited. */
 export async function saveText(userId: string, id: string, text: string, recipient: string | null) {
   const l = await owned(userId, id);
-  return db.coverLetter.update({ where: { id: l.id }, data: { text, recipient } });
+  const saved = await db.coverLetter.update({ where: { id: l.id }, data: { text, recipient } });
+  if (text !== l.text) await recordOutcome(userId, "letter", l.id, { outcome: "EDITED", edited: { text } });
+  return saved;
 }
+
+/** Downloading the letter unchanged means the person accepted the draft. An edit already recorded stays. */
+export const markExported = (userId: string, id: string) => recordOutcome(userId, "letter", id, { outcome: "ACCEPTED", onlyIfIgnored: true });
 
 /** Bring back an earlier draft; the current text goes into the history in its place. */
 export async function restore(userId: string, id: string, index: number) {
@@ -88,5 +95,7 @@ export async function restore(userId: string, id: string, index: number) {
   const pick = history[index];
   if (!pick) throw new NotFoundError();
   const next = [{ text: l.text, savedAt: l.updatedAt.toISOString() }, ...history.filter((_, i) => i !== index)].slice(0, KEEP_DRAFTS);
-  return db.coverLetter.update({ where: { id: l.id }, data: { text: pick.text, history: next as unknown as Prisma.InputJsonValue } });
+  const restored = await db.coverLetter.update({ where: { id: l.id }, data: { text: pick.text, history: next as unknown as Prisma.InputJsonValue } });
+  await recordOutcome(userId, "letter", l.id, { outcome: "EDITED", edited: { text: pick.text } });
+  return restored;
 }

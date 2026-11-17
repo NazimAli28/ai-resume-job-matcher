@@ -946,3 +946,34 @@ model InterviewPrep {
 
   @@unique([userId, jobId])
 }
+
+// ───────────────────────────── AI improvement examples (opt-in) ─────────────────────────────
+enum ExampleOutcome {
+  IGNORED
+  ACCEPTED
+  EDITED
+  REJECTED
+}
+
+/// De-identified AI input/output kept only for people who said Yes (TRAINING_OPT_IN). No user ID:
+/// subjectHash and refHash are keyed one-way hashes, so rows can be found to delete but not read back to a person.
+/// Nothing trains on these yet. Deleted on opt-out, on account deletion, and after 2 years.
+model TrainingExample {
+  id            String         @id @default(uuid(7))
+  subjectHash   String
+  refHash       String?
+  task          String
+  promptVersion String
+  model         String
+  input         Json
+  output        Json
+  outcome       ExampleOutcome @default(IGNORED)
+  edited        Json?
+  signals       Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([subjectHash])
+  @@index([refHash])
+  @@index([createdAt])
+}

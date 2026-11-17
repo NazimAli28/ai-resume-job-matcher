@@ -4,6 +4,7 @@ import { audit } from "../audit";
 import { db } from "../db";
 import { pepperHash } from "../http/request";
 import { captureError } from "../observability/errors";
+import { deleteExamplesFor, subjectHash } from "../training/service";
 import { supabaseAdmin } from "../supabase/admin";
 
 const BUCKET = "resumes";
@@ -12,6 +13,8 @@ export const UNDO_DAYS = 7;
 /** Access stops now; the data stays for the undo window. */
 export async function requestDeletion(userId: string, ipPrefix?: string) {
   await db.user.updateMany({ where: { id: userId, deletedAt: null }, data: { deletedAt: new Date() } });
+  // AI-improvement examples go straight away, not after the undo window.
+  await deleteExamplesFor(userId);
   await audit("ACCOUNT_DELETE_REQUESTED", { subjectUserId: userId, ipPrefix });
 }
 
@@ -47,6 +50,7 @@ export async function purgeAccount(userId: string) {
   await db.$transaction([
     db.deletionLedger.create({ data: { emailHash: pepperHash(user.email), userIdHash } }),
     db.productEvent.deleteMany({ where: { userIdHash } }),
+    db.trainingExample.deleteMany({ where: { subjectHash: subjectHash(userId) } }),
     // AI cost totals and security events stay, with nothing pointing back at the person.
     db.aiRequest.updateMany({ where: { userId }, data: { userId: null } }),
     db.auditLog.updateMany({ where: { subjectUserId: userId }, data: { subjectUserId: null, ipPrefix: null, metadata: Prisma.DbNull } }),

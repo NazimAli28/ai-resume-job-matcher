@@ -15,6 +15,7 @@ import { extract } from "../resume/extract";
 import { analyze } from "../resume/rules";
 import { buildResumeDoc } from "../resume/structure";
 import type { ResumeDoc } from "../resume/types";
+import { attach, recordOutcome } from "../training/service";
 import { assertQuota, recordUsage } from "../usage/service";
 import { applySuggestions, buildEvidence, deterministicSuggestions, fillTemplate, validateSuggestions, type GuardStats, type Suggestion } from "./core";
 
@@ -65,6 +66,7 @@ export async function generate(userId: string, jobId: string, versionId: string,
   const deterministic = deterministicSuggestions({ doc, evidence, items, reqs });
   let ai: Suggestion[] = [];
   let stats: TailorStats = { proposed: 0, kept: 0, asked: 0, blocked: {} };
+  let exampleId: string | null = null;
   try {
     const out = await runAiTask(
       userId,
@@ -75,6 +77,7 @@ export async function generate(userId: string, jobId: string, versionId: string,
       }),
       opts.provider,
     );
+    exampleId = out.exampleId;
     const validated = validateSuggestions(out.data.suggestions, { doc, evidence, reqs });
     ai = validated.suggestions;
     stats = validated.stats;
@@ -95,6 +98,7 @@ export async function generate(userId: string, jobId: string, versionId: string,
     ? await db.tailorSession.update({ where: { id: existing.id }, data: chargeable ? { ...data, createdAt: new Date() } : data })
     : await db.tailorSession.create({ data: { userId, jobId, resumeVersionId: versionId, ...data } });
   if (chargeable && !stats.aiFailed) await recordUsage(userId, "TAILORED_VERSION");
+  await attach(exampleId, "tailor", session.id);
   return session;
 }
 
@@ -104,7 +108,23 @@ async function ownedSession(userId: string, sessionId: string) {
   return { session: s, suggestions: s.suggestions as unknown as Suggestion[] };
 }
 
-const save = (id: string, suggestions: Suggestion[]) => db.tailorSession.update({ where: { id }, data: { suggestions: suggestions as unknown as Prisma.InputJsonValue } });
+/** What the person did with each suggestion. Their own rewrites matter most. */
+export function tailorOutcome(suggestions: Suggestion[]) {
+  const outcome = suggestions.some((s) => s.editedByUser)
+    ? ("EDITED" as const)
+    : suggestions.some((s) => s.status === "APPLIED")
+      ? ("ACCEPTED" as const)
+      : suggestions.some((s) => s.status === "DISMISSED")
+        ? ("REJECTED" as const)
+        : ("IGNORED" as const);
+  const edited = suggestions.map((s) => ({ kind: s.kind, targetLabel: s.targetLabel, before: s.before ?? null, after: s.after ?? null, status: s.status, editedByUser: Boolean(s.editedByUser) }));
+  return { outcome, edited };
+}
+
+async function save(userId: string, id: string, suggestions: Suggestion[]) {
+  await db.tailorSession.update({ where: { id }, data: { suggestions: suggestions as unknown as Prisma.InputJsonValue } });
+  await recordOutcome(userId, "tailor", id, tailorOutcome(suggestions));
+}
 
 export async function setStatus(userId: string, sessionId: string, suggestionId: string, status: Suggestion["status"]) {
   const { session, suggestions } = await ownedSession(userId, sessionId);
@@ -113,7 +133,7 @@ export async function setStatus(userId: string, sessionId: string, suggestionId:
   // Questions are applied by answering them, not by a click.
   if (status === "APPLIED" && !s.after) throw new AnswerError("needs_answer");
   s.status = status;
-  await save(session.id, suggestions);
+  await save(userId, session.id, suggestions);
   return session;
 }
 
@@ -124,7 +144,7 @@ export async function setAll(userId: string, sessionId: string, mode: "accept" |
     if (mode === "accept" && s.status === "PENDING" && s.after && s.kind !== "GAP_QUESTION") s.status = "APPLIED";
     if (mode === "reset" && s.status === "APPLIED" && s.kind !== "GAP_QUESTION") s.status = "PENDING";
   }
-  await save(session.id, suggestions);
+  await save(userId, session.id, suggestions);
   return session;
 }
 
@@ -138,7 +158,7 @@ export async function editSuggestion(userId: string, sessionId: string, suggesti
   s.kind = "REWRITE";
   s.editedByUser = true;
   s.warning = verdict.action === "PASS" ? undefined : `This says something your resume doesn't (${verdict.action === "BLOCK" ? verdict.detail.join(", ") : verdict.reason === "NEW_NUMBER" ? `the figure ${verdict.detail.join(", ")}` : "a stronger claim"}). Keep it only if it's true.`;
-  await save(session.id, suggestions);
+  await save(userId, session.id, suggestions);
   return session;
 }
 
@@ -160,7 +180,7 @@ export async function answer(userId: string, sessionId: string, suggestionId: st
     await addEvidence(userId, reqId, statement);
     s.status = "APPLIED";
     s.after = undefined;
-    await save(session.id, suggestions);
+    await save(userId, session.id, suggestions);
     return session;
   }
   if (s.kind !== "QUESTION" || !s.template) throw new NotFoundError();
@@ -168,7 +188,7 @@ export async function answer(userId: string, sessionId: string, suggestionId: st
   if (s.answerType === "YES_NO") {
     if (value !== "yes") {
       s.status = "DISMISSED";
-      await save(session.id, suggestions);
+      await save(userId, session.id, suggestions);
       return session;
     }
     s.after = s.template;
@@ -183,7 +203,7 @@ export async function answer(userId: string, sessionId: string, suggestionId: st
   s.kind = "REWRITE";
   s.status = "PENDING";
   s.basedOn = [...s.basedOn, { id: "answer", label: "Your answer", text: s.after }];
-  await save(session.id, suggestions);
+  await save(userId, session.id, suggestions);
   return session;
 }
 
@@ -232,5 +252,6 @@ export async function finalize(userId: string, sessionId: string) {
     return v;
   });
   await recompute(userId, job.id, created.id);
+  await recordOutcome(userId, "tailor", session.id, { signals: { savedAsVersion: true, changesApplied: changes.length } });
   return created;
 }

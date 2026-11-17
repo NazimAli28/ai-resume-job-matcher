@@ -12,6 +12,7 @@ import { captureError } from "@/server/observability/errors";
 import { cancelDeletion, requestDeletion } from "@/server/privacy/deletion";
 import { text } from "@/server/profile/schemas";
 import { rateLimit } from "@/server/ratelimit";
+import { deleteExamplesFor } from "@/server/training/service";
 import { supabaseServer } from "@/server/supabase/server";
 
 type Done = { ok: true } | { ok: false; error: string };
@@ -26,6 +27,8 @@ export async function setConsentAction(input: unknown): Promise<Done> {
   if (!(await rateLimit(`settings:consent:${user.id}`, 30, 3600)).ok) return { ok: false, error: "Too many changes. Please wait a little." };
   const prefix = ipPrefix(await clientIp());
   await db.consentRecord.create({ data: { userId: user.id, type: parsed.data.type, granted: parsed.data.granted, docVersion: LEGAL.privacy, ipPrefix: prefix } });
+  // Switching AI improvement off deletes every example already kept.
+  if (parsed.data.type === "TRAINING_OPT_IN" && !parsed.data.granted) await deleteExamplesFor(user.id);
   await audit("CONSENT_CHANGED", { subjectUserId: user.id, ipPrefix: prefix, metadata: { type: parsed.data.type, granted: parsed.data.granted } });
   revalidatePath("/app/settings");
   return { ok: true };

@@ -26,7 +26,7 @@ const POINTS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Download,
     title: "Your data, your call",
-    body: "Export or delete everything yourself, free. Nothing is used to train AI unless you opt in.",
+    body: "Export or delete everything yourself, free. Nothing is kept to improve our AI unless you say Yes.",
   },
 ];
 

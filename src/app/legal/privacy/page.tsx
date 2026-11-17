@@ -7,13 +7,13 @@ export const metadata: Metadata = { title: "Privacy Policy" };
 
 export default function PrivacyPage() {
   return (
-    <LegalDoc title="Privacy Policy" version={LEGAL.privacy.split("@")[1]} updated="4 November 2026">
+    <LegalDoc title="Privacy Policy" version={LEGAL.privacy.split("@")[1]} updated="18 November 2026">
       <h2>The short version</h2>
       <ul>
         <li>We collect what you give us (your account, resumes, job posts, applications and interview answers) to run the features you use.</li>
         <li>When you use an AI feature, the relevant text is sent to our AI provider, Anthropic, with your email, phone number, address and links removed first. We never send your CNIC, date of birth, religion or father&apos;s name.</li>
         <li>We don&apos;t sell your data, show you ads, or give anything to employers or recruiters.</li>
-        <li>We don&apos;t use your content to train AI models unless you opt in. That setting is off by default.</li>
+        <li>We ask you once whether we may keep de-identified examples to test and improve our AI. Nothing is kept unless you say Yes, and you can switch it off any time, which deletes them. We don&apos;t train any AI model yet.</li>
         <li>You can export or delete your data yourself, any time, free.</li>
       </ul>
 
@@ -44,7 +44,41 @@ export default function PrivacyPage() {
         <li>To keep the service secure, prevent abuse, and fix errors (legitimate interests).</li>
         <li>To send account emails such as confirmations and password resets (contract).</li>
         <li>To send product tips only if you ticked that box (consent, withdraw any time).</li>
-        <li>To improve AI models with de-identified content only if you opt in separately (consent, off by default).</li>
+        <li>To test and improve our AI with de-identified examples, only if you said Yes (consent, withdraw any time).</li>
+      </ul>
+
+      <h2 id="ai-improvement">Helping improve our AI (only if you say Yes)</h2>
+      <p>
+        When you sign up, or the next time you sign in, we ask whether we may keep examples to test and improve our AI.
+        Neither answer is chosen for you. If you say No, nothing is kept. If you say Yes:
+      </p>
+      <ul>
+        <li>
+          <strong>What we keep:</strong> which AI task ran (for example reading a job post, resume suggestions, a cover
+          letter or interview scoring), the version of our instructions and the AI model used, the text the AI was given
+          and what it answered, and what you did with it: accepted, edited (with your edited version), rejected or left
+          it, plus retries and scores where they apply.
+        </li>
+        <li>
+          <strong>De-identified first:</strong> before anything is saved we remove names, email addresses, phone numbers,
+          CNIC and other ID numbers, street addresses, links, and the names of the employers and schools on your resume.
+          Your other details, such as skills and job titles, stay so the example is useful. De-identification lowers the
+          risk but can&apos;t promise that no one could ever recognise an example, so leave things out of your resume you
+          wouldn&apos;t want kept.
+        </li>
+        <li>
+          <strong>Kept apart from your account:</strong> examples are stored in a separate table without your name, email
+          or account ID. A one-way code lets us find and delete your examples, but not read them back to you as a person.
+        </li>
+        <li>
+          <strong>How we use them:</strong> only to test and improve the quality of our own AI features. We don&apos;t
+          train any AI model yet; if we start, we&apos;ll update this policy first. We don&apos;t sell or share examples, and
+          they stay with our database provider in Singapore.
+        </li>
+        <li>
+          <strong>Your control:</strong> switch it off any time in Settings and all your examples are deleted straight
+          away. Deleting your account deletes them too. They are included in your data download.
+        </li>
       </ul>
 
       <h2>Who we share it with</h2>
@@ -61,6 +95,7 @@ export default function PrivacyPage() {
         <li>Inactive accounts: deleted after 24 months without a sign-in, after two warning emails.</li>
         <li>Raw interview answers: deleted 12 months after the interview; scores and summaries stay until you delete them.</li>
         <li>Deleted accounts: removed after a 7-day undo window.</li>
+        <li>AI-improvement examples (only if you said Yes): up to 2 years, or until you switch it off or delete your account.</li>
         <li>Security logs: 12 months. Error records: 90 days.</li>
         <li>Backups: we don&apos;t keep separate backups during the beta. If that changes, we&apos;ll update this policy first.</li>
       </ul>
